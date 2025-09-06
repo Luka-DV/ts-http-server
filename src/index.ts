@@ -1,12 +1,14 @@
 import express, { Request, Response } from "express";
+import { middlewareLogResponses } from "./middleware.js";
 
 const PORT = process.env.PORT || 8080;
 
 const app = express();
 
 
-app.use("/app", express.static("./src/app"));
+app.use("/app", express.static("./src/app")); // root is relative to the project root 
 
+app.use(middlewareLogResponses);
 
 app.get("/healthz", handlerReadiness);
 
