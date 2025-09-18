@@ -14,8 +14,11 @@ export function middlewareLogResponses(req: Request, res: Response, next: NextFu
 }
 
 
-export function countFileserverHits(_: Request, __: Response, next: NextFunction) {
+export function countFileserverHits(req: Request, __: Response, next: NextFunction) {
     config.fileserverHits++;
+    
+    console.log("Req method: ", req.method);
+    console.log("Req url: ", req.url);
 
     next();
 }
