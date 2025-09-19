@@ -7,7 +7,8 @@ export async function handlerReadiness(_: Request, res: Response): Promise<void>
 
 
 export type ValidResponse = {
-    valid: boolean;
+    valid?: boolean;
+    cleanedBody?: string;
 };
 export type ErrorResponse = {  
     error: string;
@@ -17,7 +18,45 @@ export type ChirpData = {
 };
 
 export async function validateChirp(req: Request, res: Response): Promise<void> {
-    let body = "";
+    try {
+        const chirp = req.body;
+    
+        if(typeof chirp.body !== "string") {
+            throw new Error("Invalid body");
+        }
+
+        if(chirp.body.length > 140) {
+            throw new Error("Chirp is too long");
+        }
+
+        const cleanChirpText = cleanOneChirp(chirp.body);
+
+        const validChirp: ValidResponse = {
+            //"valid": true,
+            cleanedBody: cleanChirpText
+        };
+    
+        
+        res.type("application/json")
+        res.status(200)
+            .send(JSON.stringify(validChirp));
+
+    } catch(err) {
+        if(err instanceof Error) {
+            const errorMsg: ErrorResponse = {
+            "error": `${err.message}`
+            }
+
+            res.type("application/json");
+            res.status(400)
+                .send(JSON.stringify(errorMsg));
+        }
+    }
+
+
+// manualy parsing the request body:
+/*  
+   let body = "";
 
     // Listen for data events
     req.on("data", (chunk) => {
@@ -57,17 +96,45 @@ export async function validateChirp(req: Request, res: Response): Promise<void> 
             if(error instanceof Error) {
                 const errorMsg: ErrorResponse = {
                 "error": `${error.message}`,
-            }
+                }
 
-            if(error.cause) {
-                const causeMsg = error.cause instanceof Error ? error.cause.message : String(error.cause);
-                console.log(causeMsg);
-            }
+                if(error.cause) {
+                    const causeMsg = error.cause instanceof Error ? error.cause.message : String(error.cause);
+                    console.log(causeMsg);
+                }
 
-            res.type("application/json");
-            res.status(400)
-                .send(JSON.stringify(errorMsg));
+                res.type("application/json");
+                res.status(400)
+                    .send(JSON.stringify(errorMsg));
             }
         }
-    });
+    }); 
+    */
+
+}
+
+
+function cleanOneChirp(text: string) {
+
+    const profaneWords = [
+        "kerfuffle",
+        "sharbert",
+        "fornax"
+    ]
+
+    const textArray = text.trim().split(" ");
+
+    const textArrayLowerCase = 
+        text.toLowerCase()
+            .trim()
+            .split(" ");
+
+    for(let i = 0; i < textArrayLowerCase.length; i++) {
+        if(profaneWords.includes(textArrayLowerCase[i])) {
+            textArray[i] = "****";
+        }
+    }
+
+    return textArray.join(" ");
+
 }
