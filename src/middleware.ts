@@ -14,11 +14,23 @@ export function middlewareLogResponses(req: Request, res: Response, next: NextFu
 }
 
 
-export function countFileserverHits(req: Request, __: Response, next: NextFunction) {
+export function countFileserverHits(_req: Request, _res: Response, next: NextFunction) {
     config.fileserverHits++;
-    
-    console.log("Req method: ", req.method);
-    console.log("Req url: ", req.url);
+    //console.log("Req method: ", req.method);
+    //console.log("Req url: ", req.url);
 
     next();
+}
+
+export function errorHandler(
+    err: Error,
+    _req: Request,
+    res: Response,
+    _next: NextFunction
+) {
+    console.log(`An error occurred: ${err}`);
+    res.status(500)
+        .json({
+            "error": "Something went wrong on our end",
+        });
 }

@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -17,7 +18,7 @@ export type ChirpData = {
     body: string;
 };
 
-export async function validateChirp(req: Request, res: Response): Promise<void> {
+export async function validateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const chirp = req.body;
     
@@ -29,7 +30,11 @@ export async function validateChirp(req: Request, res: Response): Promise<void> 
             throw new Error("Chirp is too long");
         }
 
-        const cleanChirpText = cleanOneChirp(chirp.body);
+        // console.log("REQ: ",req);
+        // console.log("CHIRP: ", chirp);  
+        // console.log("CHIRP body: ", chirp.body);
+
+        const cleanChirpText = cleanChirp(chirp.body);
 
         const validChirp: ValidResponse = {
             //"valid": true,
@@ -42,7 +47,9 @@ export async function validateChirp(req: Request, res: Response): Promise<void> 
             .send(JSON.stringify(validChirp));
 
     } catch(err) {
-        if(err instanceof Error) {
+        next(err);
+        
+/*         if(err instanceof Error) {
             const errorMsg: ErrorResponse = {
             "error": `${err.message}`
             }
@@ -50,7 +57,7 @@ export async function validateChirp(req: Request, res: Response): Promise<void> 
             res.type("application/json");
             res.status(400)
                 .send(JSON.stringify(errorMsg));
-        }
+        } */
     }
 
 
@@ -114,7 +121,7 @@ export async function validateChirp(req: Request, res: Response): Promise<void> 
 }
 
 
-function cleanOneChirp(text: string) {
+function cleanChirp(text: string) {
 
     const profaneWords = [
         "kerfuffle",

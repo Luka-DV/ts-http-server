@@ -1,5 +1,5 @@
 import express from "express";
-import { countFileserverHits, middlewareLogResponses } from "./middleware.js";
+import { countFileserverHits, errorHandler, middlewareLogResponses } from "./middleware.js";
 import { handlerReadiness, validateChirp} from "./api/apiHandler.js";
 import { adminView, resetNumOfRequests } from "./api/adminHandlers.js";
 
@@ -17,6 +17,8 @@ app.post("/api/validate_chirp", validateChirp);
 
 app.get("/admin/metrics", adminView);
 app.post("/admin/reset", resetNumOfRequests);
+
+app.use(errorHandler);
 
 
 app.listen(PORT, () => {
