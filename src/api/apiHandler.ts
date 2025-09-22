@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { BadRequestError } from "../errors.js"
 
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
@@ -21,13 +22,13 @@ export type ChirpData = {
 export async function validateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const chirp = req.body;
-    
-        if(typeof chirp.body !== "string") {
-            throw new Error("Invalid body");
+
+        if (!chirp || !("body" in chirp) || typeof chirp.body !== "string") {
+            throw new BadRequestError("Invalid request");
         }
 
         if(chirp.body.length > 140) {
-            throw new Error("Chirp is too long");
+            throw new BadRequestError("Chirp is too long. Max length is 140");
         }
 
         // console.log("REQ: ",req);
@@ -48,7 +49,7 @@ export async function validateChirp(req: Request, res: Response, next: NextFunct
 
     } catch(err) {
         next(err);
-        
+
 /*         if(err instanceof Error) {
             const errorMsg: ErrorResponse = {
             "error": `${err.message}`
