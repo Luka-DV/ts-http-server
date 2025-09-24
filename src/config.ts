@@ -2,8 +2,11 @@
 import { loadEnvFile } from 'node:process';
 loadEnvFile();
 
+export type APIConfig = {
+    fileserverHits: number;
+    dbURL: string;
+};
 
-const dbURL = envOrThrow("DB_URL")
 
 function envOrThrow(key: string) {
     if(!process.env[key]) {
@@ -13,15 +16,7 @@ function envOrThrow(key: string) {
 }
 
 
-export type APIConfig = {
-    fileserverHits: number;
-    dbURL: string;
-};
-
 export const config: APIConfig = {
     fileserverHits: 0,
-    dbURL: dbURL
+    dbURL: envOrThrow("DB_URL")
 }
-
-
-
