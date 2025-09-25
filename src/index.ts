@@ -1,9 +1,23 @@
+
 import express from "express";
-import { countFileserverHits, errorHandler, middlewareLogResponses } from "./middleware.js";
+import { 
+    countFileserverHits, 
+    errorHandler, 
+    middlewareLogResponses 
+} from "./middleware.js";
 import { handlerReadiness, validateChirp} from "./api/apiHandler.js";
 import { adminView, resetNumOfRequests } from "./api/adminHandlers.js";
 
-const PORT = process.env.PORT || 8080;
+import postgres from 'postgres';
+import { config } from './config.js';
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+
+
+const migrationClient = postgres(config.db.url, {max: 1});
+await migrate(drizzle(migrationClient), config.db.migrationConfig);
+
+const PORT = config.api.port || 8080;
 
 const app = express();
 

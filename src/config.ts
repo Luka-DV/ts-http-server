@@ -1,14 +1,24 @@
 
+import type { MigrationConfig } from 'drizzle-orm/migrator';
 import { loadEnvFile } from 'node:process';
 loadEnvFile();
 
-export type APIConfig = {
+type APIConfig = {
     fileserverHits: number;
-    dbURL: string;
+    port: number;
 };
 
+type DBConfig = {
+    url: string;
+    migrationConfig: MigrationConfig;
+}
 
-function envOrThrow(key: string) {
+type Config = {
+    api: APIConfig,
+    db: DBConfig
+}
+
+function envOrThrowErr(key: string) {
     if(!process.env[key]) {
         throw new Error("Missing connection string!");
     }
@@ -16,7 +26,15 @@ function envOrThrow(key: string) {
 }
 
 
-export const config: APIConfig = {
-    fileserverHits: 0,
-    dbURL: envOrThrow("DB_URL")
+export const config: Config = {
+    api: {
+        fileserverHits: 0,
+        port: Number(envOrThrowErr("PORT")),
+    },
+    db: {
+        url: envOrThrowErr("DB_URL"),
+        migrationConfig: {
+            migrationsFolder: "./src/db/migrations",
+        }
+    }
 }
