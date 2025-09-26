@@ -5,17 +5,18 @@ import {
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { handlerReadiness, validateChirp} from "./api/apiHandler.js";
+import { createNewUser, handlerReadiness, validateChirp} from "./api/apiHandler.js";
 import { adminView, resetNumOfRequests } from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
 import { config } from './config.js';
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { createUser } from "./db/queries/users.js";
 
 
 const migrationClient = postgres(config.db.url, {max: 1});
-await migrate(drizzle(migrationClient), config.db.migrationConfig);
+await migrate(drizzle(migrationClient), config.db.migrationConfig); //runs automatic migrations at server startup
 
 const PORT = config.api.port || 8080;
 
@@ -31,6 +32,8 @@ app.post("/api/validate_chirp", validateChirp);
 
 app.get("/admin/metrics", adminView);
 app.post("/admin/reset", resetNumOfRequests);
+
+app.post("api/users", createNewUser); //here
 
 app.use(errorHandler);
 
