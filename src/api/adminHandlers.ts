@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
+import { deleteALLUsers, getAllUsers } from "../db/queries/users.js";
+import { ForbiddenError } from "../errors.js";
 
 export async function adminView(_: Request, res: Response): Promise<void> {
     res.type(".html");
@@ -12,9 +14,29 @@ export async function adminView(_: Request, res: Response): Promise<void> {
         </html>`);
 }
 
-export async function resetNumOfRequests(_: Request, res: Response): Promise<void> {
-    config.api.fileserverHits = 0;
-    //res.set("Content-Type", "text/plain; charset=utf-8");
-    res.type("text/plain");
-    res.send("Count reset");
+export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        if(config.api.platform !== "dev") {
+            throw new ForbiddenError("You can`t do that.")
+        }
+        config.api.fileserverHits = 0;
+        await deleteALLUsers();
+        //res.set("Content-Type", "text/plain; charset=utf-8");
+        res.type("text/plain");
+        res.send("Count reset and users deleted");
+
+    } catch (error) {
+        next()
+    }
 }
+
+export async function checkAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const users = await getAllUsers();
+        res.type("json");
+        res.status(201).json(users);
+    } catch (error) {
+        next();
+    }
+}
+

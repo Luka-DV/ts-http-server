@@ -10,3 +10,13 @@ export async function createUser(user: NewUser) {
         .returning();
     return result;
 }
+
+export async function deleteALLUsers() {
+    await db.delete(users);
+}
+
+export async function getAllUsers() {
+    const users = await db.query.users.findMany();
+
+    return users;
+}

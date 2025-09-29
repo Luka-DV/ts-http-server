@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../errors.js"
+import { createUser } from "../db/queries/users.js";
+import { NewUser } from "../db/schema.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -37,7 +39,6 @@ export async function validateChirp(req: Request, res: Response, next: NextFunct
             cleanedBody: cleanChirpText
         };
     
-        
         res.type("application/json")
         res.status(200)
             .send(JSON.stringify(validChirp));
@@ -74,6 +75,14 @@ function cleanChirp(text: string) {
 
 export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
+        const newUserEmail: NewUser = req.body;
+        if(!newUserEmail.email || typeof newUserEmail.email !== "string") {
+            throw new BadRequestError("Missing email!");
+        }
+        const createdUser = await createUser(newUserEmail);
+
+        res.type("json");
+        res.status(201).json(createdUser);
         
     } catch (err) {
         next(err);

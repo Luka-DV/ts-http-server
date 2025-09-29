@@ -5,15 +5,13 @@ import {
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { createNewUser, handlerReadiness, validateChirp} from "./api/apiHandler.js";
-import { adminView, resetNumOfRequests } from "./api/adminHandlers.js";
+import { createNewUser, handlerReadiness, validateChirp} from "./api/apiHandlers.js";
+import { adminView, checkAllUsers, resetNumOfRequestsAndDeleteALLUsers } from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
 import { config } from './config.js';
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { createUser } from "./db/queries/users.js";
-
 
 const migrationClient = postgres(config.db.url, {max: 1});
 await migrate(drizzle(migrationClient), config.db.migrationConfig); //runs automatic migrations at server startup
@@ -31,9 +29,10 @@ app.get("/api/healthz", handlerReadiness);
 app.post("/api/validate_chirp", validateChirp);
 
 app.get("/admin/metrics", adminView);
-app.post("/admin/reset", resetNumOfRequests);
+app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
 
-app.post("api/users", createNewUser); //here
+app.post("/api/users", createNewUser); //here
+app.get("/admin/users", checkAllUsers); //testing, fn directly from queries
 
 app.use(errorHandler);
 
