@@ -16,7 +16,7 @@ export async function deleteALLUsers() {
 }
 
 export async function getAllUsers() {
-    const users = await db.query.users.findMany();
+    const allUsers = await db.query.users.findMany();
 
-    return users;
+    return allUsers;
 }

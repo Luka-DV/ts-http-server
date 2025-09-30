@@ -31,8 +31,8 @@ app.post("/api/validate_chirp", validateChirp);
 app.get("/admin/metrics", adminView);
 app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
 
-app.post("/api/users", createNewUser); //here
-app.get("/admin/users", checkAllUsers); //testing, fn directly from queries
+app.post("/api/users", createNewUser);
+app.get("/admin/users", checkAllUsers); //testing
 
 app.use(errorHandler);
 

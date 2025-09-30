@@ -77,7 +77,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
     try {
         const newUserEmail: NewUser = req.body;
         if(!newUserEmail.email || typeof newUserEmail.email !== "string") {
-            throw new BadRequestError("Missing email!");
+            throw new BadRequestError("Missing or faulty email!");
         }
         const createdUser = await createUser(newUserEmail);
 
