@@ -17,7 +17,7 @@ export async function adminView(_: Request, res: Response): Promise<void> {
 export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         if(config.api.platform !== "dev") {
-            throw new ForbiddenError("Forbidden. Wrong platform.")
+            throw new ForbiddenError("Forbidden. Reset is only allowed in dev environment.")
         }
         config.api.fileserverHits = 0;
         await deleteALLUsers();

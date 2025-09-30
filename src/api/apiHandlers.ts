@@ -75,13 +75,16 @@ function cleanChirp(text: string) {
 
 export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        const newUserEmail: NewUser = req.body;
+        type NewUserEmail = {
+            email: string;
+        }
+        const newUserEmail: NewUserEmail = req.body;
+        
         if(!newUserEmail.email || typeof newUserEmail.email !== "string") {
             throw new BadRequestError("Missing or faulty email!");
         }
         const createdUser = await createUser(newUserEmail);
 
-        res.type("json");
         res.status(201).json(createdUser);
         
     } catch (err) {
