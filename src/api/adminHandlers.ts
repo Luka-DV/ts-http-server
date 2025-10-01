@@ -33,7 +33,7 @@ export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Respo
 export async function checkAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const users = await getAllUsers();
-        res.type("json");
+        //res.type("json"); > .json already sets Content-Type
         res.status(201).json(users);
     } catch (err) {
         next(err);
