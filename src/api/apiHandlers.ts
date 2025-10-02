@@ -21,7 +21,7 @@ export type ChirpData = {
 };
 
 
-export async function validateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function validateAndCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const chirp = req.body;
 
@@ -39,9 +39,9 @@ export async function validateChirp(req: Request, res: Response, next: NextFunct
             cleanedBody: cleanChirpText
         };
     
-        res.type("application/json")
+        // res.type("application/json")
         res.status(200)
-            .send(JSON.stringify(validChirp));
+            .json(validChirp);
 
     } catch(err) {
         next(err);
@@ -79,7 +79,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
             email: string;
         }
         const newUserEmail: NewUserEmail = req.body;
-        
+
         if(!newUserEmail.email || typeof newUserEmail.email !== "string") {
             throw new BadRequestError("Missing or faulty email!");
         }

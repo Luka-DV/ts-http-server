@@ -5,7 +5,7 @@ import {
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { createNewUser, handlerReadiness, validateChirp} from "./api/apiHandlers.js";
+import { createNewUser, handlerReadiness, validateAndCreateChirp} from "./api/apiHandlers.js";
 import { adminView, checkAllUsers, resetNumOfRequestsAndDeleteALLUsers } from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
@@ -26,13 +26,15 @@ app.use(express.json());
 app.use("/app", countFileserverHits,express.static("./src/app")); // root is relative to the project root 
 
 app.get("/api/healthz", handlerReadiness);
-app.post("/api/validate_chirp", validateChirp);
+//app.post("/api/validate_chirp", validateAndCreateChirp);
 
 app.get("/admin/metrics", adminView);
 app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
 
 app.post("/api/users", createNewUser);
 app.get("/admin/users", checkAllUsers); //testing
+
+app.post("/api/chirps", validateAndCreateChirp ); // here
 
 app.use(errorHandler);
 
