@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../errors.js"
 import { createUser } from "../db/queries/users.js";
-import { NewUser } from "../db/schema.js";
+import { createChirp } from "../db/queries/chirps.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -10,8 +10,9 @@ export async function handlerReadiness(_: Request, res: Response): Promise<void>
 
 
 export type ValidResponse = {
-    valid?: boolean;
-    cleanedBody?: string;
+    //valid?: boolean;
+    body: string;
+    userId: string
 };
 export type ErrorResponse = {  
     error: string;
@@ -25,7 +26,11 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
     try {
         const chirp = req.body;
 
-        if (!chirp || !("body" in chirp) || typeof chirp.body !== "string") {
+        if (!chirp
+            || !("body" in chirp) 
+            || typeof chirp.body !== "string" 
+            || !("userId" in chirp)
+            || typeof chirp.userId !== "string") {
             throw new BadRequestError("Invalid request");
         }
 
@@ -36,12 +41,15 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
         const cleanChirpText = cleanChirp(chirp.body);
 
         const validChirp: ValidResponse = {
-            cleanedBody: cleanChirpText
+            body: cleanChirpText,
+            userId: chirp.userId
         };
+
+        const newChirp = await createChirp(validChirp);
     
         // res.type("application/json")
-        res.status(200)
-            .json(validChirp);
+        res.status(201)
+            .json(newChirp);
 
     } catch(err) {
         next(err);
