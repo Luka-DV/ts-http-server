@@ -12,6 +12,7 @@ import postgres from 'postgres';
 import { config } from './config.js';
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { db } from "./db/indexDB.js";
 
 const migrationClient = postgres(config.db.url, {max: 1});
 await migrate(drizzle(migrationClient), config.db.migrationConfig); //runs automatic migrations at server startup
@@ -36,9 +37,26 @@ app.get("/admin/users", checkAllUsers); //testing
 
 app.post("/api/chirps", validateAndCreateChirp ); // here
 
+
+/* // drizzle relations API test 
+app.get("/", async (req, res) => {
+    try {
+        const data = await db.query.chirps.findMany( {
+            with: {
+                user: true
+            }
+        })
+        return res.status(200).json(data)
+    } catch (error) {
+        console.log(error)
+    }
+}) */
+
 app.use(errorHandler);
 
 
 app.listen(PORT, () => {
     console.log(`Bravo! Server is listening on PORT: ${PORT}.`);
 })
+
+

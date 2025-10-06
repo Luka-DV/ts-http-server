@@ -47,7 +47,6 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
 
         const newChirp = await createChirp(validChirp);
     
-        // res.type("application/json")
         res.status(201)
             .json(newChirp);
 
