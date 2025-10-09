@@ -5,8 +5,16 @@ import {
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { createNewUser, getAllChirps, handlerReadiness, validateAndCreateChirp} from "./api/apiHandlers.js";
-import { adminView, checkAllUsers, resetNumOfRequestsAndDeleteALLUsers } from "./api/adminHandlers.js";
+import { createNewUser, 
+    getAllChirps, 
+    getSingleChirp, 
+    handlerReadiness, 
+    validateAndCreateChirp
+} from "./api/apiHandlers.js";
+import { adminView, 
+    checkAllUsers, 
+    resetNumOfRequestsAndDeleteALLUsers 
+} from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
 import { config } from './config.js';
@@ -26,7 +34,6 @@ app.use(express.json());
 app.use("/app", countFileserverHits,express.static("./src/app")); // root is relative to the project root 
 
 app.get("/api/healthz", handlerReadiness);
-//app.post("/api/validate_chirp", validateAndCreateChirp);
 
 app.get("/admin/metrics", adminView);
 app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
@@ -35,23 +42,9 @@ app.post("/api/users", createNewUser);
 app.get("/admin/users", checkAllUsers); //testing
 
 app.post("/api/chirps", validateAndCreateChirp);
-app.get("/api/chirps", getAllChirps)
+app.get("/api/chirps", getAllChirps);
+app.get("/api/chirps/:chirpID", getSingleChirp);
 
-
-
-/* // drizzle relations API test 
-app.get("/", async (req, res) => {
-    try {
-        const data = await db.query.chirps.findMany( {
-            with: {
-                user: true
-            }
-        })
-        return res.status(200).json(data)
-    } catch (error) {
-        console.log(error)
-    }
-}) */
 
 app.use(errorHandler);
 

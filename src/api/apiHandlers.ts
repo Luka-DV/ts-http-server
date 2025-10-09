@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { BadRequestError } from "../errors.js"
+import { BadRequestError, NotFoundError } from "../errors.js"
 import { createUser } from "../db/queries/users.js";
-import { createChirp, getAllChirpsQuery } from "../db/queries/chirps.js";
+import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -99,12 +99,29 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
     }
 }
 
-export async function getAllChirps(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getAllChirps(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const allChirps = await getAllChirpsQuery();
 
         res.status(200)
             .json(allChirps);
+
+    } catch (err) {
+        next(err)
+    }
+}
+
+export async function getSingleChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const { chirpID } = req.params;
+        const singleChirp = await getSingleChirpQuery(chirpID);
+
+        if(!singleChirp) {
+            throw new NotFoundError("No chirp with this ID was found");
+        }
+
+        res.status(200)
+            .json(singleChirp);
 
     } catch (err) {
         next(err)

@@ -21,3 +21,11 @@ export async function getAllChirpsQuery() {
 
     return allChirps;
 }
+
+export async function getSingleChirpQuery(chirpID: string) {
+    const chirp = await db.query.chirps.findFirst({
+        where: (chirps, {eq}) => eq(chirps.id, chirpID),
+    })
+
+    return chirp;
+}
