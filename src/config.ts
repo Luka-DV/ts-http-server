@@ -21,7 +21,7 @@ type Config = {
 
 function envOrThrowErr(key: string) {
     if(!process.env[key]) {
-        throw new Error("Missing connection string!");
+        throw new Error("Missing .env value!");
     }
     return process.env[key];
 }

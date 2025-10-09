@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../errors.js"
 import { createUser } from "../db/queries/users.js";
-import { createChirp } from "../db/queries/chirps.js";
+import { createChirp, getAllChirpsQuery } from "../db/queries/chirps.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -96,5 +96,17 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
         
     } catch (err) {
         next(err);
+    }
+}
+
+export async function getAllChirps(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const allChirps = await getAllChirpsQuery();
+
+        res.status(200)
+            .json(allChirps);
+
+    } catch (err) {
+        next(err)
     }
 }

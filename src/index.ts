@@ -5,14 +5,13 @@ import {
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { createNewUser, handlerReadiness, validateAndCreateChirp} from "./api/apiHandlers.js";
+import { createNewUser, getAllChirps, handlerReadiness, validateAndCreateChirp} from "./api/apiHandlers.js";
 import { adminView, checkAllUsers, resetNumOfRequestsAndDeleteALLUsers } from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
 import { config } from './config.js';
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { db } from "./db/indexDB.js";
 
 const migrationClient = postgres(config.db.url, {max: 1});
 await migrate(drizzle(migrationClient), config.db.migrationConfig); //runs automatic migrations at server startup
@@ -35,7 +34,9 @@ app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
 app.post("/api/users", createNewUser);
 app.get("/admin/users", checkAllUsers); //testing
 
-app.post("/api/chirps", validateAndCreateChirp ); // here
+app.post("/api/chirps", validateAndCreateChirp);
+app.get("/api/chirps", getAllChirps)
+
 
 
 /* // drizzle relations API test 
