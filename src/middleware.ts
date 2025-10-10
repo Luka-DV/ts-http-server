@@ -30,6 +30,8 @@ export function errorHandler(
     _next: NextFunction
 ) {
     switch(true) {
+        case true: 
+            console.error(err);
         case err instanceof NotFoundError:
             res.status(404).json({"error": err.message});
             break;
