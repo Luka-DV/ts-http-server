@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequestError, NotFoundError } from "../errors.js"
 import { createUser } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
+import { NewChirp } from "../db/schema.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -9,11 +10,11 @@ export async function handlerReadiness(_: Request, res: Response): Promise<void>
 }
 
 
-export type ValidResponse = {
+/* export type ValidResponse = {
     //valid?: boolean;
     body: string;
     userId: string
-};
+}; */
 export type ErrorResponse = {  
     error: string;
 };
@@ -40,7 +41,7 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
 
         const cleanChirpText = cleanChirp(chirp.body);
 
-        const validChirp: ValidResponse = {
+        const validChirp: NewChirp = {
             body: cleanChirpText,
             userId: chirp.userId
         };
