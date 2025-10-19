@@ -2,7 +2,7 @@ import { db } from "../indexDB.js";
 import { NewUser, User, users } from "../schema.js";
 
 
-type UserResponse = Omit<User, "hashedPassword">
+export type UserResponse = Omit<User, "hashedPassword">
 
 export async function createUser(user: NewUser): Promise<UserResponse> {
     const [result] = await db

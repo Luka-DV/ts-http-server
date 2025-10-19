@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUser, getSingleUserQuery } from "../db/queries/users.js";
+import { createUser, getSingleUserQuery, UserResponse } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, hashPassword } from "../auth.js";
@@ -85,7 +85,7 @@ function cleanChirp(text: string) {
 
 export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        const newUserParams = req.body;
+        const newUserParams: {email:string, password: string} = req.body;
 
         if(!newUserParams.email || typeof newUserParams.email !== "string") {
             throw new BadRequestError("Missing or faulty email");
@@ -94,12 +94,12 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
             throw new BadRequestError("Missing or invalid user password");
         }
 
-        newUserParams.hashedPassword = await hashPassword(newUserParams.password);
-        delete newUserParams.password;
-        
-        const newUser: NewUser = newUserParams;
+        const hashedPassword = await hashPassword(newUserParams.password);
 
-        const createdUser = await createUser(newUser);
+        const createdUser = await createUser({
+            email: newUserParams.email,
+            hashedPassword
+        }) satisfies NewUser;
 
         res.status(201).json(createdUser);
         
@@ -110,7 +110,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
 
 export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        const userParams = req.body;
+        const userParams: {password: string, email: string} = req.body;
 
         if(!userParams.email || typeof userParams.email !== "string") {
             throw new BadRequestError("Missing or faulty email");
@@ -121,11 +121,14 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const user = await getSingleUserQuery(userParams.email);
 
-        if(!user) {
-            throw new NotFoundError("No user with this email was found");
+        if(!user || !user.email) {
+            throw new UnauthorizedError("Incorrect email or password");
         }
 
-        const matchingPasswords = await checkPasswordHash(userParams.password, user.hashedPassword);
+        const matchingPasswords = await checkPasswordHash(
+            userParams.password, 
+            user.hashedPassword
+        );
 
         if(!matchingPasswords) {
             throw new UnauthorizedError("Incorrect email or password");
@@ -135,7 +138,6 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         res.status(200)
             .json(safeUser);
-
         
     } catch (err) {
         next(err);
