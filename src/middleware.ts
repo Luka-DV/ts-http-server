@@ -29,9 +29,8 @@ export function errorHandler(
     res: Response,
     _next: NextFunction
 ) {
+    console.error(err);
     switch(true) {
-        case true: 
-            console.error(err);
         case err instanceof NotFoundError:
             res.status(404).json({"error": err.message});
             break;
@@ -45,8 +44,6 @@ export function errorHandler(
             res.status(400).json({"error": err.message});
             break;
         default:
-            console.error(err);  
             res.status(500).send("Internal Server Error");  
-
     }
 }

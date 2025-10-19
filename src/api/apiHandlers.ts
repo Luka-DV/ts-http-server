@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { BadRequestError, NotFoundError } from "../errors.js"
-import { createUser } from "../db/queries/users.js";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
+import { createUser, getSingleUserQuery } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
-import { NewChirp } from "../db/schema.js";
+import { NewChirp, NewUser } from "../db/schema.js";
+import { checkPasswordHash, hashPassword } from "../auth.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -21,6 +22,7 @@ export type ErrorResponse = {
 export type ChirpData = {
     body: string;
 };
+
 
 
 export async function validateAndCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -83,17 +85,57 @@ function cleanChirp(text: string) {
 
 export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        type NewUserEmail = {
-            email: string;
-        }
-        const newUserEmail: NewUserEmail = req.body;
+        const newUserParams = req.body;
 
-        if(!newUserEmail.email || typeof newUserEmail.email !== "string") {
-            throw new BadRequestError("Missing or faulty email!");
+        if(!newUserParams.email || typeof newUserParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
         }
-        const createdUser = await createUser(newUserEmail);
+        if(!newUserParams.password || typeof newUserParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        newUserParams.hashedPassword = await hashPassword(newUserParams.password);
+        delete newUserParams.password;
+        
+        const newUser: NewUser = newUserParams;
+
+        const createdUser = await createUser(newUser);
 
         res.status(201).json(createdUser);
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
+    try {
+        const userParams = req.body;
+
+        if(!userParams.email || typeof userParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
+        }
+        if(!userParams.password || typeof userParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        const user = await getSingleUserQuery(userParams.email);
+
+        if(!user) {
+            throw new NotFoundError("No user with this email was found");
+        }
+
+        const matchingPasswords = await checkPasswordHash(userParams.password, user.hashedPassword);
+
+        if(!matchingPasswords) {
+            throw new UnauthorizedError("Incorrect email or password");
+        }
+
+        const {hashedPassword, ...safeUser } = user;
+
+        res.status(200)
+            .json(safeUser);
+
         
     } catch (err) {
         next(err);

@@ -9,10 +9,10 @@ export const users = pgTable("users", {
         .$onUpdate(() => new Date()),
     email: varchar("email", {length: 256}).unique().notNull(),
     hashedPassword: varchar("hashed_password").notNull().default("unset"),
-    
 });
 
 export type NewUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
 
 
 export const chirps = pgTable("chirps", {
@@ -38,7 +38,4 @@ export const usersRelations = relations(users, ({many}) => ({
 export const chirpsRelatoins = relations(chirps, ({one}) => ({
     user: one(users, {fields: [chirps.userId], references: [users.id]}),
 }))
-
-
-
 

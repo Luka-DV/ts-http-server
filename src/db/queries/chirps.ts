@@ -9,7 +9,7 @@ export async function createChirp(chirp: NewChirp) {
         .onConflictDoNothing()
         .returning();
 
-        console.log("RESULT: ,", result);
+        console.log("New CHIRP: ", result);
     return result;
 }
 
