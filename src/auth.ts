@@ -3,9 +3,6 @@ import * as argon2 from "argon2";
 import { BadRequestError, UnauthorizedError } from "./errors.js";
 import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
-import test from "node:test";
-import { stringify } from "querystring";
-import { throwDeprecation } from "process";
 
 //Hash the password using the argon2.hash function:
 
@@ -58,7 +55,7 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
 
 export function validateJWT(tokenString: string, secret: string): string {
     /* 
-    function isTokenPayload(decoded: string | JwtPayload): decoded is JwtPayload {
+    function isJwtPayload(decoded: string | JwtPayload): decoded is JwtPayload {
         return typeof decoded !== "string" && "sub" in decoded;
     } 
     */
@@ -68,10 +65,10 @@ export function validateJWT(tokenString: string, secret: string): string {
             && decoded !== null 
             && "sub" in decoded 
             && typeof decoded.sub === "string") 
-            {
+        {
             return decoded.sub;
         } else {
-            throw new UnauthorizedError("No valid token");
+            throw new UnauthorizedError("Invalid token payload");
         }
 
      
@@ -83,11 +80,11 @@ export function validateJWT(tokenString: string, secret: string): string {
             throw new UnauthorizedError(err.message);
         }
         if(err instanceof jwt.NotBeforeError) {
-            throw new UnauthorizedError("JWT not active");
+            throw new UnauthorizedError("Token not active");
         }
         if(err instanceof UnauthorizedError) {
             throw err;
         }
-        throw new UnauthorizedError("Invalid token");
+        throw err;
     }
 };
