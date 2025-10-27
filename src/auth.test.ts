@@ -29,6 +29,11 @@ describe("Password Hashing", () => {
     const result = await checkPasswordHash("", hash1);
     expect(result).toBe(false);
   });
+
+   it("should return false for an invalid hash", async () => {
+    const result = await checkPasswordHash(password1, "invalidhash");
+    expect(result).toBe(false);
+  });
   
 });
 
@@ -67,7 +72,7 @@ describe("Creating and validating JWTs", () => {
         expect(() => validateJWT(jwt1, secret2)).toThrowError(UnauthorizedError)
 
     > regex string message match
-        expect(() => validateJWT(jwt1, secret2)).toThrowError(/invalid signature/);
+        expect(() => validateJWT(jwt1, secret2)).toThrowError(/^invalid signature$/);
     */
 
     setTimeout(() => {}, 50);

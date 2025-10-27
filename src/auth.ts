@@ -3,6 +3,7 @@ import * as argon2 from "argon2";
 import { BadRequestError, UnauthorizedError } from "./errors.js";
 import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
+import { Request } from "express";
 
 //Hash the password using the argon2.hash function:
 
@@ -25,10 +26,10 @@ export async function checkPasswordHash(password: string, hash: string): Promise
         const passwordMatchBool = await argon2.verify(hash, password);
         return passwordMatchBool;
     } catch(err) {
-        throw err;
+        console.error(err); // production alternative: Pino testing library
+        return false;
     }
 }
-
 
 //JWT
 
@@ -87,4 +88,20 @@ export function validateJWT(tokenString: string, secret: string): string {
         }
         throw err;
     }
+};
+
+
+export function getBearerToken(req: Request): string {
+
+    const tokenString = req.get("Authorization");
+    if(typeof tokenString !== "string") {
+        throw new UnauthorizedError("Missing header")
+    };
+
+    const cleanTokenString = tokenString.split(" ").at(-1);
+    if(!cleanTokenString) {
+        throw new UnauthorizedError("Missing token string");
+    };
+
+    return cleanTokenString;
 };
