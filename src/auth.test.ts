@@ -1,7 +1,9 @@
 
 import { describe, it, expect, beforeAll, test } from "vitest";
-import { hashPassword, checkPasswordHash, makeJWT, validateJWT } from "./auth.js";
+import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken } from "./auth.js";
 import { UnauthorizedError } from "./errors.js";
+import { Request } from "express";
+
 
 
 describe("Password Hashing", () => {
@@ -85,6 +87,56 @@ describe("Creating and validating JWTs", () => {
 });
 
 
+describe("Get token string from request", () => {
+/* 
+    const mockHeader = new Headers();
+    mockHeader.append("Authorization", "Bearer mockTokenString");
+    const mockRequest = new Request("/", {headers: mockHeader});
+*/
+   
+    const mockTokenString = "Bearer mockTokenString";
+
+    const mockRequestObjectOK = {
+        get(auth: string): string | undefined {
+            if(auth !== "Authorization") {
+                return undefined;
+            }
+            return mockTokenString;
+        }
+    }
+
+    const mockRequestObjectUndefined = {
+        get(auth: string): undefined {
+            return undefined;
+        }
+    }
+
+    const mockRequestObjectWrongString = {
+        get(auth: string): string | undefined {
+            if(auth === "Authorization") {
+                return "   node   ";
+            }
+            return undefined;
+        }
+    }
+
+    test("should return correct token string", () => {
+        const tokenString = getBearerToken(mockRequestObjectOK as Request);
+        expect(tokenString).toBe("mockTokenString");
+    })
+
+    test("should throw an error for missing token string", () => {
+        expect(() => getBearerToken(mockRequestObjectUndefined as Request)).toThrowError(expect.objectContaining({
+            message: "Missing header",
+        }))
+    })
+
+    test("should throw an error for wrong token string", () => {
+        expect(() => getBearerToken(mockRequestObjectWrongString as Request)).toThrowError(expect.objectContaining({
+            message: "Wrong token format",
+        }))
+    })
+})
 
 
 

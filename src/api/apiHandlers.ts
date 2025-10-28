@@ -3,7 +3,8 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
 import { createUser, getSingleUserQuery, UserResponse } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
-import { checkPasswordHash, hashPassword } from "../auth.js";
+import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, validateJWT } from "../auth.js";
+import { config } from "../config.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -27,13 +28,16 @@ export type ChirpData = {
 
 export async function validateAndCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+
+        const userToken = getBearerToken(req);
+
+        const userIdFromToken = validateJWT(userToken, config.api.secret);
+
         const chirp = req.body;
 
         if (!chirp
             || !("body" in chirp) 
-            || typeof chirp.body !== "string" 
-            || !("userId" in chirp)
-            || typeof chirp.userId !== "string") {
+            || typeof chirp.body !== "string") {
             throw new BadRequestError("Invalid request");
         }
 
@@ -45,7 +49,7 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
 
         const validChirp: NewChirp = {
             body: cleanChirpText,
-            userId: chirp.userId
+            userId: userIdFromToken
         };
 
         const newChirp = await createChirp(validChirp);
@@ -110,7 +114,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
 
 export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        const userParams: {password: string, email: string} = req.body;
+        const userParams: {password: string, email: string, expiresInSeconds?: number} = req.body;
 
         if(!userParams.email || typeof userParams.email !== "string") {
             throw new BadRequestError("Missing or faulty email");
@@ -136,8 +140,16 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const {hashedPassword, ...safeUser } = user;
 
+        const jwt = makeJWT(
+            user.id, 
+            userParams.expiresInSeconds = 3600, 
+            config.api.secret
+        )
+
+        const safeUserWithToken = {...safeUser, token: jwt};
+
         res.status(200)
-            .json(safeUser);
+            .json(safeUserWithToken);
         
     } catch (err) {
         next(err);

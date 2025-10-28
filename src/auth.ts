@@ -1,7 +1,7 @@
 
 import * as argon2 from "argon2";
 import { BadRequestError, UnauthorizedError } from "./errors.js";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 
@@ -26,7 +26,7 @@ export async function checkPasswordHash(password: string, hash: string): Promise
         const passwordMatchBool = await argon2.verify(hash, password);
         return passwordMatchBool;
     } catch(err) {
-        console.error(err); // production alternative: Pino testing library
+        // console.error(err); // production alternative: Pino testing library
         return false;
     }
 }
@@ -100,7 +100,7 @@ export function getBearerToken(req: Request): string {
 
     const cleanTokenString = tokenString.split(" ").at(-1);
     if(!cleanTokenString) {
-        throw new UnauthorizedError("Missing token string");
+        throw new UnauthorizedError("Wrong token format");
     };
 
     return cleanTokenString;
