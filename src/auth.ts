@@ -4,6 +4,7 @@ import { BadRequestError, UnauthorizedError } from "./errors.js";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
+import { config } from "./config.js";
 
 //Hash the password using the argon2.hash function:
 
@@ -40,7 +41,7 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
     const exp = iat + expiresIn;
 
     const tokenPayload: payload = {
-        iss: "chirpy",
+        iss: config.jwt.issuer,
         sub: userID,
         iat,
         exp
@@ -95,7 +96,7 @@ export function getBearerToken(req: Request): string {
 
     const tokenString = req.get("Authorization");
     if(typeof tokenString !== "string") {
-        throw new UnauthorizedError("Missing header")
+        throw new UnauthorizedError("Missing authorization header")
     };
 
     const cleanTokenString = tokenString.split(" ").at(-1);

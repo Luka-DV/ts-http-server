@@ -7,7 +7,6 @@ type APIConfig = {
     fileserverHits: number;
     port: number;
     platform: string;
-    secret: string;
 };
 
 type DBConfig = {
@@ -15,9 +14,16 @@ type DBConfig = {
     migrationConfig: MigrationConfig;
 }
 
+type JWTConfig = {
+    secret: string;
+    issuer: string;
+    defaultDuration: number;
+}
+
 type Config = {
     api: APIConfig,
-    db: DBConfig
+    db: DBConfig,
+    jwt: JWTConfig,
 }
 
 function envOrThrowErr(key: string) {
@@ -33,12 +39,16 @@ export const config: Config = {
         fileserverHits: 0,
         port: Number(envOrThrowErr("PORT")),
         platform: envOrThrowErr("PLATFORM"),
-        secret: envOrThrowErr("SECRET"),
     },
     db: {
         url: envOrThrowErr("DB_URL"),
         migrationConfig: {
             migrationsFolder: "./src/db/migrations",
         }
+    },
+    jwt: {
+        secret: envOrThrowErr("SECRET"),
+        issuer: "chirpy",
+        defaultDuration: 60*60 // 1h in seconds
     }
 }

@@ -10,7 +10,7 @@ import { createNewUser,
     getSingleChirp, 
     handlerReadiness, 
     userLogin, 
-    validateAndCreateChirp
+    handlerCreateChirp
 } from "./api/apiHandlers.js";
 import { adminView, 
     checkAllUsers, 
@@ -44,7 +44,7 @@ app.get("/admin/users", checkAllUsers); //testing
 
 app.post("/api/login", userLogin);
 
-app.post("/api/chirps", validateAndCreateChirp);
+app.post("/api/chirps", handlerCreateChirp);
 app.get("/api/chirps", getAllChirps);
 app.get("/api/chirps/:chirpID", getSingleChirp);
 

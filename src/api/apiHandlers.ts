@@ -11,7 +11,6 @@ export async function handlerReadiness(_: Request, res: Response): Promise<void>
     res.send("OK");
 }
 
-
 /* export type ValidResponse = {
     //valid?: boolean;
     body: string;
@@ -25,27 +24,17 @@ export type ChirpData = {
 };
 
 
-
-export async function validateAndCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function handlerCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-
         const userToken = getBearerToken(req);
 
-        const userIdFromToken = validateJWT(userToken, config.api.secret);
+        const userIdFromToken = validateJWT(userToken, config.jwt.secret);
 
-        const chirp = req.body;
+        const chirp: {body: string} = req.body;
 
-        if (!chirp
-            || !("body" in chirp) 
-            || typeof chirp.body !== "string") {
-            throw new BadRequestError("Invalid request");
-        }
+        const chirpText = validateChirp(chirp)
 
-        if(chirp.body.length > 140) {
-            throw new BadRequestError("Chirp is too long. Max length is 140");
-        }
-
-        const cleanChirpText = cleanChirp(chirp.body);
+        const cleanChirpText = cleanChirp(chirpText);
 
         const validChirp: NewChirp = {
             body: cleanChirpText,
@@ -63,7 +52,22 @@ export async function validateAndCreateChirp(req: Request, res: Response, next: 
 }
 
 
-function cleanChirp(text: string) {
+function validateChirp(chirp: {body: string}): string {
+    if (!chirp
+        || !("body" in chirp) 
+        || typeof chirp.body !== "string") {
+        throw new BadRequestError("Invalid request");
+    }
+
+    if(chirp.body.length > 140) {
+        throw new BadRequestError("Chirp is too long. Max length is 140");
+    }
+
+    return chirp.body;
+} 
+
+
+function cleanChirp(text: string): string {
     const profaneWords = [
         "kerfuffle",
         "sharbert",
@@ -140,10 +144,18 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const {hashedPassword, ...safeUser } = user;
 
+        const expirationTimeInSec = (() => {
+            if(!userParams.expiresInSeconds || userParams.expiresInSeconds > 3600) {
+                return 3600;
+            }
+            return userParams.expiresInSeconds;
+        
+        })();
+
         const jwt = makeJWT(
             user.id, 
-            userParams.expiresInSeconds = 3600, 
-            config.api.secret
+            expirationTimeInSec,
+            config.jwt.secret
         )
 
         const safeUserWithToken = {...safeUser, token: jwt};
@@ -156,6 +168,7 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
     }
 }
 
+
 export async function getAllChirps(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const allChirps = await getAllChirpsQuery();
@@ -167,6 +180,7 @@ export async function getAllChirps(_req: Request, res: Response, next: NextFunct
         next(err)
     }
 }
+
 
 export async function getSingleChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
