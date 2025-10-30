@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { isNull, relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 
@@ -24,18 +24,39 @@ export const chirps = pgTable("chirps", {
     userId: uuid("user_id")
         .references(() => users.id, {onDelete: "cascade"})
         .notNull(),
-})
+});
 
 export type NewChirp = typeof chirps.$inferInsert;
 
 
+export const refreshTokens = pgTable("refresh_tokens", {
+    token: varchar("token", {length: 256}).notNull(), // primaryKey() ? >
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
+        .$onUpdate(() => new Date()),
+    userId: uuid("user_id")
+        .notNull()
+        .unique() // only one token per user
+        .references(() => users.id, {onDelete: "cascade"}),
+    expiresAt: timestamp("expires_at").notNull(),
+    revokedAt: timestamp("revoked_at")
+
+});
+
+
 // relations API
 
-export const usersRelations = relations(users, ({many}) => ({
+export const usersRelations = relations(users, ({many, one}) => ({
     chirps: many(chirps),
+    refreshToken: one(refreshTokens)
 }));
 
-export const chirpsRelatoins = relations(chirps, ({one}) => ({
+export const chirpsRelations = relations(chirps, ({one}) => ({
     user: one(users, {fields: [chirps.userId], references: [users.id]}),
-}))
+}));
+
+export const refreshTokenRelations = relations(refreshTokens, ({one}) => ({
+    user: one(users, {fields: [refreshTokens.userId],references: [users.id]}),
+}));
+
 
