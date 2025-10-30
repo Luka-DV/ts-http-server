@@ -146,7 +146,7 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const expirationTimeInSec = (() => {
             if(!userParams.expiresInSeconds || userParams.expiresInSeconds > 3600) {
-                return 3600;
+                return config.jwt.defaultDuration; //1h
             }
             return userParams.expiresInSeconds;
         

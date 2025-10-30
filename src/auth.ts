@@ -99,10 +99,9 @@ export function getBearerToken(req: Request): string {
         throw new UnauthorizedError("Missing authorization header")
     };
 
-    const cleanTokenString = tokenString.split(" ").at(-1);
-    if(!cleanTokenString) {
+    const [bearer, cleanToken] = tokenString.split(" ");
+    if (bearer !== "Bearer" || !cleanToken) {
         throw new UnauthorizedError("Wrong token format");
-    };
-
-    return cleanTokenString;
+    }
+    return cleanToken;
 };
