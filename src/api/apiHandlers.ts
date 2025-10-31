@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
 import { createUser, getSingleUserQuery, UserResponse } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
-import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, validateJWT } from "../auth.js";
+import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
@@ -118,7 +118,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
 
 export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
     try {
-        const userParams: {password: string, email: string, expiresInSeconds?: number} = req.body;
+        const userParams: {password: string, email: string} = req.body;
 
         if(!userParams.email || typeof userParams.email !== "string") {
             throw new BadRequestError("Missing or faulty email");
@@ -144,21 +144,15 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const {hashedPassword, ...safeUser } = user;
 
-        const expirationTimeInSec = (() => {
-            if(!userParams.expiresInSeconds || userParams.expiresInSeconds > 3600) {
-                return config.jwt.defaultDuration; //1h
-            }
-            return userParams.expiresInSeconds;
-        
-        })();
-
         const jwt = makeJWT(
             user.id, 
-            expirationTimeInSec,
+            config.jwt.defaultDuration,
             config.jwt.secret
         )
 
-        const safeUserWithToken = {...safeUser, token: jwt};
+        const refreshToken = makeRefreshToken(); // I have to pass in the data like in makeJWT to write to the DB!
+
+        const safeUserWithToken = {...safeUser, token: jwt, refreshToken};
 
         res.status(200)
             .json(safeUserWithToken);

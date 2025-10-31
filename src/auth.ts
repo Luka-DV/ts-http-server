@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 import { config } from "./config.js";
+import { randomBytes } from "node:crypto";
 
 //Hash the password using the argon2.hash function:
 
@@ -105,3 +106,14 @@ export function getBearerToken(req: Request): string {
     }
     return cleanToken;
 };
+
+
+export function makeRefreshToken() {
+    const encodedString = randomBytes(32, (err, buf) => {
+        if (err) {
+            throw err;
+        }
+        return buf.toString("hex");
+    });
+    return encodedString;
+}
