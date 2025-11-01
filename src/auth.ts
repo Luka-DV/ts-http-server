@@ -6,6 +6,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 import { config } from "./config.js";
 import { randomBytes } from "node:crypto";
+import { writeRefreshToken } from "./db/queries/tokens.js";
 
 //Hash the password using the argon2.hash function:
 
@@ -108,12 +109,24 @@ export function getBearerToken(req: Request): string {
 };
 
 
-export function makeRefreshToken() {
-    const encodedString = randomBytes(32, (err, buf) => {
-        if (err) {
-            throw err;
-        }
-        return buf.toString("hex");
-    });
-    return encodedString;
+export async function makeRefreshToken(userId: string): Promise<string>{
+    const encodedString = await new Promise<string>((resolve, reject) => {
+        randomBytes(32, (err, buf) => {
+            if (err) {
+                return reject(err)
+            }
+            resolve(buf.toString("hex"));
+        });
+    })
+
+    const tokenRow = await writeRefreshToken({
+        token: encodedString,
+        userId
+    })
+
+    if(tokenRow) { // is either { token: string } or undefined if failed
+        return tokenRow.token;
+    }
+
+    return makeRefreshToken(userId); // on conflict try again
 }

@@ -36,9 +36,9 @@ export const refreshTokens = pgTable("refresh_tokens", {
         .$onUpdate(() => new Date()),
     userId: uuid("user_id")
         .notNull()
-        .unique() // only one token per user
+        //.unique() // only one token per user
         .references(() => users.id, {onDelete: "cascade"}),
-    expiresAt: timestamp("expires_at").$defaultFn(() => {
+    expiresAt: timestamp("expires_at").notNull().$defaultFn(() => {
         const date = new Date();
         date.setDate(date.getDate() + 60); // adds 60 days
         return date;
@@ -46,12 +46,13 @@ export const refreshTokens = pgTable("refresh_tokens", {
     revokedAt: timestamp("revoked_at") // null by default
 });
 
+export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 
 // relations API
 
 export const usersRelations = relations(users, ({many, one}) => ({
     chirps: many(chirps),
-    refreshToken: one(refreshTokens)
+    refreshToken: many(refreshTokens)
 }));
 
 export const chirpsRelations = relations(chirps, ({one}) => ({

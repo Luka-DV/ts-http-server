@@ -150,7 +150,7 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
             config.jwt.secret
         )
 
-        const refreshToken = makeRefreshToken(); // I have to pass in the data like in makeJWT to write to the DB!
+        const refreshToken = await makeRefreshToken(user.id);
 
         const safeUserWithToken = {...safeUser, token: jwt, refreshToken};
 
