@@ -5,6 +5,7 @@ import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queri
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
+import { findRefreshToken } from "../db/queries/tokens.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -152,11 +153,36 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const refreshToken = await makeRefreshToken(user.id);
 
-        const safeUserWithToken = {...safeUser, token: jwt, refreshToken};
+        const safeUserWithTokens = {...safeUser, token: jwt, refreshToken};
 
         res.status(200)
-            .json(safeUserWithToken);
+            .json(safeUserWithTokens); //
         
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function refreshAccessToken(req: Request, res: Response, next: NextFunction) {
+    try {
+        const tokenString = getBearerToken(req);
+        const refreshToken = await findRefreshToken(tokenString);
+        if(!refreshToken || 
+            refreshToken.expiresAt.getTime() <= Date.now() ||
+            refreshToken.revokedAt !== null
+        ){
+            throw new UnauthorizedError("Refresh token missing, expired or revoked");
+        }
+
+         const jwt = makeJWT(
+            refreshToken.userId, 
+            config.jwt.defaultDuration,
+            config.jwt.secret
+        )
+
+        res.status(200)
+            .json({token: jwt});
+
     } catch (err) {
         next(err);
     }

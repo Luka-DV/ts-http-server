@@ -1,5 +1,5 @@
-import { db } from "../indexDB";
-import { NewRefreshToken, refreshTokens } from "../schema";
+import { db } from "../indexDB.js";
+import { NewRefreshToken, refreshTokens } from "../schema.js";
 
 
 export async function writeRefreshToken(refToken: NewRefreshToken) {
@@ -11,4 +11,12 @@ export async function writeRefreshToken(refToken: NewRefreshToken) {
         });
     
     return insert;
+}
+
+export async function findRefreshToken(tokenString: string) {
+    const token = await db.query.refreshTokens.findFirst({
+        where: (refreshTokens, {eq}) => eq(refreshTokens.token, tokenString)
+    })
+
+    return token;
 }

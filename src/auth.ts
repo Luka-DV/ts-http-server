@@ -103,7 +103,7 @@ export function getBearerToken(req: Request): string {
 
     const [bearer, cleanToken] = tokenString.split(" ");
     if (bearer !== "Bearer" || !cleanToken) {
-        throw new UnauthorizedError("Wrong token format");
+        throw new UnauthorizedError("Wrong token format or missing token");
     }
     return cleanToken;
 };
