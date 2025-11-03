@@ -5,7 +5,7 @@ import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queri
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
-import { findRefreshToken } from "../db/queries/tokens.js";
+import { findRefreshToken, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -155,6 +155,8 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const safeUserWithTokens = {...safeUser, token: jwt, refreshToken};
 
+        console.log("SAFE_USER: ", safeUserWithTokens) //<< TEST
+
         res.status(200)
             .json(safeUserWithTokens); //
         
@@ -182,6 +184,23 @@ export async function refreshAccessToken(req: Request, res: Response, next: Next
 
         res.status(200)
             .json({token: jwt});
+
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function revokeRefreshToken(req: Request, res: Response, next: NextFunction) {
+    try {
+        const tokenString = getBearerToken(req);
+        const revokedAt = await revokeRefreshTokenQuery(tokenString);
+        if(revokedAt === undefined) {
+            throw new UnauthorizedError("Token missing or already revoked")
+        }
+        console.log("REFRESH token REVOKED");
+
+        res.status(204)
+            .end();
 
     } catch (err) {
         next(err);

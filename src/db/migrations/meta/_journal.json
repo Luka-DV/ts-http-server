@@ -29,6 +29,13 @@
       "when": 1760697281682,
       "tag": "0003_naive_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1762155159706,
+      "tag": "0004_yellow_kronos",
+      "breakpoints": true
     }
   ]
 }
