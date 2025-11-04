@@ -12,7 +12,8 @@ import { createNewUser,
     userLogin, 
     handlerCreateChirp,
     refreshAccessToken,
-    revokeRefreshToken
+    revokeRefreshToken,
+    updateUserLoginInfo
 } from "./api/apiHandlers.js";
 import { adminView, 
     checkAllUsers, 
@@ -43,6 +44,7 @@ app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
 
 app.post("/api/users", createNewUser);
 app.get("/admin/users", checkAllUsers); //testing
+app.put("/api/users", updateUserLoginInfo);
 
 app.post("/api/login", userLogin);
 app.post("/api/refresh", refreshAccessToken);

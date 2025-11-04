@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "../indexDB.js";
 import { NewUser, User, users } from "../schema.js";
 
@@ -20,6 +21,23 @@ export async function createUser(user: NewUser): Promise<UserResponse> {
 
 export async function deleteALLUsers() {
     await db.delete(users);
+}
+
+export async function updateUserInfoQuery(userId: string, email: string , hashedPassword: string): Promise<UserResponse> {
+    const [updatedUser] = await db.update(users)
+        .set({
+            email, 
+            hashedPassword,
+        })
+        .where(eq(users.id, userId))
+        .returning({
+            id: users.id,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+            email: users.email
+        })
+        
+    return updatedUser
 }
 
 export async function getAllUsers() {

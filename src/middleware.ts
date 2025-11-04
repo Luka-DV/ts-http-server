@@ -29,7 +29,7 @@ export function errorHandler(
     res: Response,
     _next: NextFunction
 ) {
-    console.error(err);
+    console.error("Error handler: ", err);
     switch(true) {
         case err instanceof NotFoundError:
             res.status(404).json({"error": err.message});

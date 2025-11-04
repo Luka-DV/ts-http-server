@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUser, getSingleUserQuery, UserResponse } from "../db/queries/users.js";
+import { createUser, getSingleUserQuery, updateUserInfoQuery, UserResponse } from "../db/queries/users.js";
 import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
@@ -165,6 +165,33 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
     }
 }
 
+
+export async function updateUserLoginInfo(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userToken = getBearerToken(req);
+        const userId = validateJWT(userToken, config.jwt.secret);
+
+        const userParams: {password: string, email: string} = req.body;
+        if(!userParams.email || typeof userParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
+        }
+        if(!userParams.password || typeof userParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        const hashedPassword = await hashPassword(userParams.password);
+
+        const updatedUser = await updateUserInfoQuery(userId, userParams.email, hashedPassword);
+
+        res.status(200)
+            .json(updatedUser);
+
+    } catch (err) {
+        next(err)
+    } 
+}
+
+
 export async function refreshAccessToken(req: Request, res: Response, next: NextFunction) {
     try {
         const tokenString = getBearerToken(req);
@@ -189,6 +216,7 @@ export async function refreshAccessToken(req: Request, res: Response, next: Next
         next(err);
     }
 }
+
 
 export async function revokeRefreshToken(req: Request, res: Response, next: NextFunction) {
     try {
