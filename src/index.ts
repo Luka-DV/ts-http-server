@@ -13,7 +13,8 @@ import { createNewUser,
     handlerCreateChirp,
     refreshAccessToken,
     revokeRefreshToken,
-    updateUserLoginInfo
+    updateUserLoginInfo,
+    deleteSingleChirp
 } from "./api/apiHandlers.js";
 import { adminView, 
     checkAllUsers, 
@@ -53,6 +54,7 @@ app.post("/api/revoke", revokeRefreshToken);
 app.post("/api/chirps", handlerCreateChirp);
 app.get("/api/chirps", getAllChirps);
 app.get("/api/chirps/:chirpID", getSingleChirp);
+app.delete("/api/chirps/:chirpID", deleteSingleChirp);
 
 
 app.use(errorHandler);

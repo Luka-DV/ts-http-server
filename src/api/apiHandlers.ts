@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors.js"
+import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
 import { createUser, getSingleUserQuery, updateUserInfoQuery, UserResponse } from "../db/queries/users.js";
-import { createChirp, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
+import { createChirp, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
@@ -263,5 +263,36 @@ export async function getSingleChirp(req: Request, res: Response, next: NextFunc
 
     } catch (err) {
         next(err)
+    }
+}
+
+
+export async function deleteSingleChirp(req:Request, res: Response, next: NextFunction) {
+    try {
+        const { chirpID } = req.params;
+
+        const userToken = getBearerToken(req);
+        const userId = validateJWT(userToken, config.jwt.secret);
+
+        const chirp = await getSingleChirpQuery(chirpID);
+
+        if(chirp === undefined) {
+            throw new NotFoundError("Chirp not found");
+        }
+
+        if(chirp.userId !== userId) {
+            throw new ForbiddenError("User is not the owner of this chirp");
+        }
+
+        const deletedChirpID = await deleteChirpQuery(chirp.id);
+        if(!deletedChirpID.deleted) {
+            throw new Error("Deletion not successful")
+        }
+
+        res.status(204)
+            .end();
+
+    } catch (err) {
+        next(err);
     }
 }
