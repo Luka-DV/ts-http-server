@@ -14,7 +14,8 @@ import { createNewUser,
     refreshAccessToken,
     revokeRefreshToken,
     updateUserLoginInfo,
-    deleteSingleChirp
+    deleteSingleChirp,
+    polkaWebhookUserUpgrade
 } from "./api/apiHandlers.js";
 import { adminView, 
     checkAllUsers, 
@@ -56,6 +57,7 @@ app.get("/api/chirps", getAllChirps);
 app.get("/api/chirps/:chirpID", getSingleChirp);
 app.delete("/api/chirps/:chirpID", deleteSingleChirp);
 
+app.post("/api/polka/webhooks", polkaWebhookUserUpgrade);
 
 app.use(errorHandler);
 

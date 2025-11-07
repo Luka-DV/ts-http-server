@@ -14,7 +14,8 @@ export async function createUser(user: NewUser): Promise<UserResponse> {
             id: users.id,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
-            email: users.email
+            email: users.email,
+            isChirpyRed: users.isChirpyRed
         });
     return result;
 }
@@ -34,8 +35,9 @@ export async function updateUserInfoQuery(userId: string, email: string , hashed
             id: users.id,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
-            email: users.email
-        })
+            email: users.email,
+            isChirpyRed: users.isChirpyRed
+        });
         
     return updatedUser
 }
@@ -52,4 +54,22 @@ export async function getSingleUserQuery(userEmail: string) {
     })
 
     return user;
+}
+
+
+export async function upgradeUserToRed(userID: string): Promise<UserResponse | undefined> {
+    const [upgradedUser] = await db.update(users)
+        .set({
+            isChirpyRed: true
+        })
+        .where(eq(users.id, userID))
+        .returning({
+            id: users.id,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+            email: users.email,
+            isChirpyRed: users.isChirpyRed
+        });
+
+    return upgradedUser
 }

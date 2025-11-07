@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUser, getSingleUserQuery, updateUserInfoQuery, UserResponse } from "../db/queries/users.js";
+import { createUser, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRed, UserResponse } from "../db/queries/users.js";
 import { createChirp, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
@@ -155,7 +155,7 @@ export async function userLogin(req: Request, res: Response, next: NextFunction)
 
         const safeUserWithTokens = {...safeUser, token: jwt, refreshToken};
 
-        console.log("SAFE_USER: ", safeUserWithTokens) //<< TEST
+        console.log("SAFE_USER_LOGIN: ", safeUserWithTokens) // TEST
 
         res.status(200)
             .json(safeUserWithTokens); //
@@ -291,6 +291,39 @@ export async function deleteSingleChirp(req:Request, res: Response, next: NextFu
 
         res.status(204)
             .end();
+
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+export async function polkaWebhookUserUpgrade(req: Request, res: Response, next: NextFunction) {
+    try {
+        type polkaWebhook = {
+            event: string,
+            data: {
+                userId: string
+            }
+        }
+
+        const weebhook: polkaWebhook  = req.body;
+        if(weebhook.event !== "user.upgraded") {
+            res.status(204)
+            .end();
+            return;
+        }
+        const upgradedUser = await upgradeUserToRed(weebhook.data.userId)
+
+        if(upgradedUser === undefined) {
+            throw new NotFoundError("User not found");
+        }
+
+        console.log("UPGRADED USER: ",  upgradedUser);
+
+        res.status(204)
+            .end();
+
 
     } catch (err) {
         next(err);

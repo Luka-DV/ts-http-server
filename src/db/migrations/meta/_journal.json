@@ -36,6 +36,20 @@
       "when": 1762155159706,
       "tag": "0004_yellow_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762417755808,
+      "tag": "0005_stormy_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762418647527,
+      "tag": "0006_dark_maelstrom",
+      "breakpoints": true
     }
   ]
 }
