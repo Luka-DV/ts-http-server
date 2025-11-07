@@ -1,6 +1,6 @@
 
 import { describe, it, expect, beforeAll, test } from "vitest";
-import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken } from "./auth.js";
+import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken, getAPIKey } from "./auth.js";
 import { UnauthorizedError } from "./errors.js";
 import { Request } from "express";
 
@@ -127,13 +127,65 @@ describe("Get token string from request", () => {
 
     test("should throw an error for missing token string", () => {
         expect(() => getBearerToken(mockRequestObjectUndefined as Request)).toThrowError(expect.objectContaining({
-            message: "Missing header",
+            message: "Missing authorization header",
         }))
     })
 
     test("should throw an error for wrong token string", () => {
         expect(() => getBearerToken(mockRequestObjectWrongString as Request)).toThrowError(expect.objectContaining({
-            message: "Wrong token format",
+            message: "Wrong token format or missing token",
+        }))
+    })
+})
+
+describe("Get api key from request", () => {
+
+    const mockApiKey = "ApiKey mockApiKey";
+
+    const mockRequestOK = {
+        get(auth: string): string {
+            return mockApiKey;
+        }
+    }
+
+    const mockRequestUndefined = {
+        get(auth: string): undefined {
+            return undefined;
+        }
+    }
+
+    const mockRequestMissingKey = {
+        get(auth: string): string | undefined {
+            return "ApiKey   ";
+        }
+    }
+
+      const mockRequestMissingKeyword = {
+        get(auth: string): string | undefined {
+            return "node";
+        }
+    }
+
+    test("should return correct api string", () => {
+        const keyString = getAPIKey(mockRequestOK as Request);
+        expect(keyString).toBe("mockApiKey");
+    })
+
+    test("should throw the error for a missing header", () => {
+        expect(() => getAPIKey(mockRequestUndefined as Request)).toThrowError(expect.objectContaining({
+            message: "Missing authorization header",
+        }))
+    })
+
+    test("should throw error for a missing api key", () => {
+        expect(() => getAPIKey(mockRequestMissingKey as Request)).toThrowError(expect.objectContaining({
+            message: "Wrong header format or missing key",
+        }))
+    })
+
+     test("should throw error for the missing keyword", () => {
+        expect(() => getAPIKey(mockRequestMissingKeyword as Request)).toThrowError(expect.objectContaining({
+            message: "Wrong header format or missing key",
         }))
     })
 })

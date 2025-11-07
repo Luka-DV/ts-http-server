@@ -130,3 +130,18 @@ export async function makeRefreshToken(userId: string): Promise<string>{
 
     return makeRefreshToken(userId); // on conflict try again
 }
+
+
+export function getAPIKey(req: Request): string {
+    const keyString = req.get("Authorization");
+     if(typeof keyString !== "string") {
+        throw new UnauthorizedError("Missing authorization header");
+    };
+
+    const [keyword, apiKey] = keyString.split(" ");
+      if (keyword !== "ApiKey" || !apiKey) {
+        throw new UnauthorizedError("Wrong header format or missing key");
+    }
+
+    return apiKey;
+}

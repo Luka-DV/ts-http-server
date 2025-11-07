@@ -3,7 +3,7 @@ import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } fro
 import { createUser, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRed, UserResponse } from "../db/queries/users.js";
 import { createChirp, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
-import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
+import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
 import { findRefreshToken, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
 
@@ -305,6 +305,12 @@ export async function polkaWebhookUserUpgrade(req: Request, res: Response, next:
             data: {
                 userId: string
             }
+        }
+
+        const apiKey = getAPIKey(req);
+
+        if(apiKey !== config.api.polkaKey) {
+            throw new UnauthorizedError("Wrong API key");
         }
 
         const weebhook: polkaWebhook  = req.body;
