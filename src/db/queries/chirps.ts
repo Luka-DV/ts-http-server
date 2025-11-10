@@ -23,6 +23,17 @@ export async function getAllChirpsQuery() {
     return allChirps;
 }
 
+export async function getAllChirpsFromSingleUserQuery(userID: string) {
+    const allChirpsFromUser = await db.query.chirps.findMany({
+        where: (chirps, { eq }) => eq(chirps.userId, userID), 
+        orderBy: (chirps, { asc }) => [asc(chirps.createdAt)],
+    })
+
+    return allChirpsFromUser;
+}
+
+
+
 export async function getSingleChirpQuery(chirpID: string) {
     const chirp = await db.query.chirps.findFirst({
         where: (chirps, {eq}) => eq(chirps.id, chirpID),

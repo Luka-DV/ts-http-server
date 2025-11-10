@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
 import { createUserQuery, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRedQuery, UserResponse } from "../db/queries/users.js";
-import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
-import { NewChirp, NewUser } from "../db/schema.js";
+import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getAllChirpsFromSingleUserQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
+import { Chirp, NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
 import { findRefreshTokenQuery, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
@@ -236,9 +236,18 @@ export async function revokeRefreshToken(req: Request, res: Response, next: Next
 }
 
 
-export async function getAllChirps(_req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getAllChirps(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const allChirps = await getAllChirpsQuery();
+
+        let allChirps: Chirp [] = [];  
+
+        const { authorId } = req.query;
+
+        if(authorId && typeof authorId === "string") {
+            allChirps = await getAllChirpsFromSingleUserQuery(authorId);
+        } else {
+            allChirps = await getAllChirpsQuery();
+        }
 
         res.status(200)
             .json(allChirps);
