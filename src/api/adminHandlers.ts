@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
-import { deleteALLUsers, getAllUsers } from "../db/queries/users.js";
+import { deleteALLUsersQuery, getAllUsersQuery } from "../db/queries/users.js";
 import { ForbiddenError } from "../errors.js";
 
 export async function adminView(_: Request, res: Response): Promise<void> {
@@ -20,7 +20,7 @@ export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Respo
             throw new ForbiddenError("Forbidden. Reset is only allowed in dev environment.")
         }
         config.api.fileserverHits = 0;
-        await deleteALLUsers();
+        await deleteALLUsersQuery();
         //res.set("Content-Type", "text/plain; charset=utf-8");
         res.type("text/plain");
         res.send("Count reset and users deleted");
@@ -32,7 +32,7 @@ export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Respo
 
 export async function checkAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const users = await getAllUsers();
+        const users = await getAllUsersQuery();
         //res.type("json"); > .json already sets Content-Type
         res.status(201).json(users);
     } catch (err) {

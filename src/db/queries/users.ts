@@ -5,7 +5,7 @@ import { NewUser, User, users } from "../schema.js";
 
 export type UserResponse = Omit<User, "hashedPassword">
 
-export async function createUser(user: NewUser): Promise<UserResponse> {
+export async function createUserQuery(user: NewUser): Promise<UserResponse> {
     const [result] = await db
         .insert(users)
         .values(user)
@@ -20,7 +20,7 @@ export async function createUser(user: NewUser): Promise<UserResponse> {
     return result;
 }
 
-export async function deleteALLUsers() {
+export async function deleteALLUsersQuery() {
     await db.delete(users);
 }
 
@@ -42,7 +42,7 @@ export async function updateUserInfoQuery(userId: string, email: string , hashed
     return updatedUser
 }
 
-export async function getAllUsers() {
+export async function getAllUsersQuery() {
     const allUsers = await db.query.users.findMany();
 
     return allUsers;
@@ -57,7 +57,7 @@ export async function getSingleUserQuery(userEmail: string) {
 }
 
 
-export async function upgradeUserToRed(userID: string): Promise<UserResponse | undefined> {
+export async function upgradeUserToRedQuery(userID: string): Promise<UserResponse | undefined> {
     const [upgradedUser] = await db.update(users)
         .set({
             isChirpyRed: true

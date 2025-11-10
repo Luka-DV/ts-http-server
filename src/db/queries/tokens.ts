@@ -3,7 +3,7 @@ import { db } from "../indexDB.js";
 import { NewRefreshToken, refreshTokens } from "../schema.js";
 
 
-export async function writeRefreshToken(refToken: NewRefreshToken) {
+export async function writeRefreshTokenQuery(refToken: NewRefreshToken) {
     const [insert] = await db.insert(refreshTokens)
         .values({...refToken, revokedAt: null})
         .onConflictDoNothing()
@@ -14,7 +14,7 @@ export async function writeRefreshToken(refToken: NewRefreshToken) {
     return insert;
 }
 
-export async function findRefreshToken(tokenString: string) {
+export async function findRefreshTokenQuery(tokenString: string) {
     const token = await db.query.refreshTokens.findFirst({
         where: (refreshTokens, {eq}) => eq(refreshTokens.token, tokenString)
     })

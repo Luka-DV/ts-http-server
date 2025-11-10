@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUser, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRed, UserResponse } from "../db/queries/users.js";
-import { createChirp, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
+import { createUserQuery, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRedQuery, UserResponse } from "../db/queries/users.js";
+import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
-import { findRefreshToken, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
+import { findRefreshTokenQuery, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -42,7 +42,7 @@ export async function handlerCreateChirp(req: Request, res: Response, next: Next
             userId: userIdFromToken
         };
 
-        const newChirp = await createChirp(validChirp);
+        const newChirp = await createChirpQuery(validChirp);
     
         res.status(201)
             .json(newChirp);
@@ -105,7 +105,7 @@ export async function createNewUser(req: Request, res: Response, next: NextFunct
 
         const hashedPassword = await hashPassword(newUserParams.password);
 
-        const createdUser = await createUser({
+        const createdUser = await createUserQuery({
             email: newUserParams.email,
             hashedPassword
         }) satisfies NewUser;
@@ -195,7 +195,7 @@ export async function updateUserLoginInfo(req: Request, res: Response, next: Nex
 export async function refreshAccessToken(req: Request, res: Response, next: NextFunction) {
     try {
         const tokenString = getBearerToken(req);
-        const refreshToken = await findRefreshToken(tokenString);
+        const refreshToken = await findRefreshTokenQuery(tokenString);
         if(!refreshToken || 
             refreshToken.expiresAt.getTime() <= Date.now() ||
             refreshToken.revokedAt !== null
@@ -319,7 +319,7 @@ export async function polkaWebhookUserUpgrade(req: Request, res: Response, next:
             .end();
             return;
         }
-        const upgradedUser = await upgradeUserToRed(weebhook.data.userId)
+        const upgradedUser = await upgradeUserToRedQuery(weebhook.data.userId)
 
         if(upgradedUser === undefined) {
             throw new NotFoundError("User not found");
