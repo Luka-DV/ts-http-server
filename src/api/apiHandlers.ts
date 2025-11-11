@@ -241,12 +241,17 @@ export async function getAllChirps(req: Request, res: Response, next: NextFuncti
 
         let allChirps: Chirp [] = [];  
 
-        const { authorId } = req.query;
+        const { authorId, sort } = req.query;
 
         if(authorId && typeof authorId === "string") {
             allChirps = await getAllChirpsFromSingleUserQuery(authorId);
         } else {
             allChirps = await getAllChirpsQuery();
+        }
+
+        // default is asc > if sort query is undefind or asc
+        if(sort === "desc") {
+            allChirps.sort((chirp1,chirp2) => chirp2.createdAt.getTime() - chirp1.createdAt.getTime());
         }
 
         res.status(200)
