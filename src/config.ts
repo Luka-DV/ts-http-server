@@ -27,6 +27,7 @@ type Config = {
     jwt: JWTConfig,
 }
 
+
 function envOrThrowErr(key: string) {
     if(!process.env[key]) {
         throw new Error("Missing .env value!");

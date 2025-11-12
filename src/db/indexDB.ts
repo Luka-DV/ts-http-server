@@ -1,12 +1,13 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import * as schema from "./schema.js" //imports all named exports into a single object named schema
+import * as schema from "./schema.js";
 import { config } from "../config.js";
 
-const connection = postgres(config.db.url); //creates a PostgreSQL client connection 
-export const db =  drizzle( connection, { schema }); // wraps that client with Drizzle, registering your table schema. You pass the schema so Drizzle knows what tables, columns, relationships you have.
-// *ORM: lets you talk to the database using objects, functions etc., instead of writing raw SQL strings.
+// PostgreSQL client connection to a PSQL server
+const connection = postgres(config.db.url);  
+export const db =  drizzle( connection, { schema }); 
+// wraps that client with Drizzle, registering your table schema
 
 /* 
 - Schema definitions (tables/columns) generate TS static types.

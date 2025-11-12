@@ -32,13 +32,12 @@ export type Chirp = typeof chirps.$inferSelect;
 
 
 export const refreshTokens = pgTable("refresh_tokens", {
-    token: varchar("token", {length: 256}).primaryKey(), // unique and not null values
+    token: varchar("token", {length: 256}).primaryKey(), 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
         .$onUpdate(() => new Date()),
     userId: uuid("user_id")
         .notNull()
-        //.unique() // only one token per user
         .references(() => users.id, {onDelete: "cascade"}),
     expiresAt: timestamp("expires_at").notNull().$defaultFn(() => {
         const date = new Date();
@@ -50,6 +49,7 @@ export const refreshTokens = pgTable("refresh_tokens", {
 
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 
+
 // relations API
 
 export const usersRelations = relations(users, ({many, one}) => ({
@@ -57,12 +57,14 @@ export const usersRelations = relations(users, ({many, one}) => ({
     refreshToken: many(refreshTokens)
 }));
 
+
 export const chirpsRelations = relations(chirps, ({one}) => ({
     user: one(users, {
         fields: [chirps.userId], 
         references: [users.id]
     }),
 }));
+
 
 export const refreshTokenRelations = relations(refreshTokens, ({one}) => ({
     user: one(users, { 

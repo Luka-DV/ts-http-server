@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUserQuery, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRedQuery, UserResponse } from "../db/queries/users.js";
+import { createUserQuery, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRedQuery } from "../db/queries/users.js";
 import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getAllChirpsFromSingleUserQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { Chirp, NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
@@ -12,18 +12,7 @@ export async function handlerReadiness(_: Request, res: Response): Promise<void>
     res.send("OK");
 }
 
-/* export type ValidResponse = {
-    //valid?: boolean;
-    body: string;
-    userId: string
-}; */
-export type ErrorResponse = {  
-    error: string;
-};
-export type ChirpData = {
-    body: string;
-};
-
+// CHIRPS
 
 export async function handlerCreateChirp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -89,150 +78,6 @@ function cleanChirp(text: string): string {
     }
 
     return textArray.join(" ");
-}
-
-
-export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
-    try {
-        const newUserParams: {email:string, password: string} = req.body;
-
-        if(!newUserParams.email || typeof newUserParams.email !== "string") {
-            throw new BadRequestError("Missing or faulty email");
-        }
-        if(!newUserParams.password || typeof newUserParams.password !== "string") {
-            throw new BadRequestError("Missing or invalid user password");
-        }
-
-        const hashedPassword = await hashPassword(newUserParams.password);
-
-        const createdUser = await createUserQuery({
-            email: newUserParams.email,
-            hashedPassword
-        }) satisfies NewUser;
-
-        res.status(201).json(createdUser);
-        
-    } catch (err) {
-        next(err);
-    }
-}
-
-export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
-    try {
-        const userParams: {password: string, email: string} = req.body;
-
-        if(!userParams.email || typeof userParams.email !== "string") {
-            throw new BadRequestError("Missing or faulty email");
-        }
-        if(!userParams.password || typeof userParams.password !== "string") {
-            throw new BadRequestError("Missing or invalid user password");
-        }
-
-        const user = await getSingleUserQuery(userParams.email);
-
-        if(!user || !user.email) {
-            throw new UnauthorizedError("Incorrect email or password");
-        }
-
-        const matchingPasswords = await checkPasswordHash(
-            userParams.password, 
-            user.hashedPassword
-        );
-
-        if(!matchingPasswords) {
-            throw new UnauthorizedError("Incorrect email or password");
-        }
-
-        const {hashedPassword, ...safeUser } = user;
-
-        const jwt = makeJWT(
-            user.id, 
-            config.jwt.defaultDuration,
-            config.jwt.secret
-        )
-
-        const refreshToken = await makeRefreshToken(user.id);
-
-        const safeUserWithTokens = {...safeUser, token: jwt, refreshToken};
-
-        console.log("SAFE_USER_LOGIN: ", safeUserWithTokens) // TEST
-
-        res.status(200)
-            .json(safeUserWithTokens); //
-        
-    } catch (err) {
-        next(err);
-    }
-}
-
-
-export async function updateUserLoginInfo(req: Request, res: Response, next: NextFunction) {
-    try {
-        const userToken = getBearerToken(req);
-        const userId = validateJWT(userToken, config.jwt.secret);
-
-        const userParams: {password: string, email: string} = req.body;
-        if(!userParams.email || typeof userParams.email !== "string") {
-            throw new BadRequestError("Missing or faulty email");
-        }
-        if(!userParams.password || typeof userParams.password !== "string") {
-            throw new BadRequestError("Missing or invalid user password");
-        }
-
-        const hashedPassword = await hashPassword(userParams.password);
-
-        const updatedUser = await updateUserInfoQuery(userId, userParams.email, hashedPassword);
-
-        res.status(200)
-            .json(updatedUser);
-
-    } catch (err) {
-        next(err)
-    } 
-}
-
-
-export async function refreshAccessToken(req: Request, res: Response, next: NextFunction) {
-    try {
-        const tokenString = getBearerToken(req);
-        const refreshToken = await findRefreshTokenQuery(tokenString);
-        if(!refreshToken || 
-            refreshToken.expiresAt.getTime() <= Date.now() ||
-            refreshToken.revokedAt !== null
-        ){
-            throw new UnauthorizedError("Refresh token missing, expired or revoked");
-        }
-
-         const jwt = makeJWT(
-            refreshToken.userId, 
-            config.jwt.defaultDuration,
-            config.jwt.secret
-        )
-
-        res.status(200)
-            .json({token: jwt});
-
-    } catch (err) {
-        next(err);
-    }
-}
-
-
-export async function revokeRefreshToken(req: Request, res: Response, next: NextFunction) {
-    try {
-        const tokenString = getBearerToken(req);
-        const revokedAt = await revokeRefreshTokenQuery(tokenString);
-        if(revokedAt === undefined) {
-            throw new UnauthorizedError("Token missing or already revoked")
-        }
-        console.log("REFRESH token REVOKED");
-
-        res.status(204)
-            .end();
-
-    } catch (err) {
-        next(err);
-    }
 }
 
 
@@ -312,6 +157,60 @@ export async function deleteSingleChirp(req:Request, res: Response, next: NextFu
 }
 
 
+// USERS
+
+export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void>  {
+    try {
+        const newUserParams: {email:string, password: string} = req.body;
+
+        if(!newUserParams.email || typeof newUserParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
+        }
+        if(!newUserParams.password || typeof newUserParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        const hashedPassword = await hashPassword(newUserParams.password);
+
+        const createdUser = await createUserQuery({
+            email: newUserParams.email,
+            hashedPassword
+        }) satisfies NewUser;
+
+        res.status(201).json(createdUser);
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+export async function updateUserLoginInfo(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userToken = getBearerToken(req);
+        const userId = validateJWT(userToken, config.jwt.secret);
+
+        const userParams: {password: string, email: string} = req.body;
+        if(!userParams.email || typeof userParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
+        }
+        if(!userParams.password || typeof userParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        const hashedPassword = await hashPassword(userParams.password);
+
+        const updatedUser = await updateUserInfoQuery(userId, userParams.email, hashedPassword);
+
+        res.status(200)
+            .json(updatedUser);
+
+    } catch (err) {
+        next(err)
+    } 
+}
+
+
 export async function polkaWebhookUserUpgrade(req: Request, res: Response, next: NextFunction) {
     try {
         type polkaWebhook = {
@@ -344,6 +243,100 @@ export async function polkaWebhookUserUpgrade(req: Request, res: Response, next:
         res.status(204)
             .end();
 
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+// TOKENS
+
+export async function userLogin(req: Request, res: Response, next: NextFunction): Promise<void>  {
+    try {
+        const userParams: {password: string, email: string} = req.body;
+
+        if(!userParams.email || typeof userParams.email !== "string") {
+            throw new BadRequestError("Missing or faulty email");
+        }
+        if(!userParams.password || typeof userParams.password !== "string") {
+            throw new BadRequestError("Missing or invalid user password");
+        }
+
+        const user = await getSingleUserQuery(userParams.email);
+
+        if(!user || !user.email) {
+            throw new UnauthorizedError("Incorrect email or password");
+        }
+
+        const matchingPasswords = await checkPasswordHash(
+            userParams.password, 
+            user.hashedPassword
+        );
+
+        if(!matchingPasswords) {
+            throw new UnauthorizedError("Incorrect email or password");
+        }
+
+        const {hashedPassword, ...safeUser } = user;
+
+        const jwt = makeJWT(
+            user.id, 
+            config.jwt.defaultDuration,
+            config.jwt.secret
+        )
+
+        const refreshToken = await makeRefreshToken(user.id);
+
+        const safeUserWithTokens = {...safeUser, token: jwt, refreshToken};
+
+        console.log("SAFE_USER_LOGIN: ", safeUserWithTokens) // TEST
+
+        res.status(200)
+            .json(safeUserWithTokens); //
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+export async function refreshAccessToken(req: Request, res: Response, next: NextFunction) {
+    try {
+        const tokenString = getBearerToken(req);
+        const refreshToken = await findRefreshTokenQuery(tokenString);
+        if(!refreshToken || 
+            refreshToken.expiresAt.getTime() <= Date.now() ||
+            refreshToken.revokedAt !== null
+        ){
+            throw new UnauthorizedError("Refresh token missing, expired or revoked");
+        }
+
+         const jwt = makeJWT(
+            refreshToken.userId, 
+            config.jwt.defaultDuration,
+            config.jwt.secret
+        )
+
+        res.status(200)
+            .json({token: jwt});
+
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+export async function revokeRefreshToken(req: Request, res: Response, next: NextFunction) {
+    try {
+        const tokenString = getBearerToken(req);
+        const revokedAt = await revokeRefreshTokenQuery(tokenString);
+        if(revokedAt === undefined) {
+            throw new UnauthorizedError("Token missing or already revoked")
+        }
+        console.log("REFRESH token REVOKED");
+
+        res.status(204)
+            .end();
 
     } catch (err) {
         next(err);

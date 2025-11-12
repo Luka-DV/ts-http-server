@@ -18,8 +18,8 @@ import { createNewUser,
     polkaWebhookUserUpgrade
 } from "./api/apiHandlers.js";
 import { adminView, 
-    checkAllUsers, 
-    resetNumOfRequestsAndDeleteALLUsers 
+    getAllUsers, 
+    resetRequestsAndDeleteAllUsers 
 } from "./api/adminHandlers.js";
 
 import postgres from 'postgres';
@@ -27,8 +27,10 @@ import { config } from './config.js';
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 
+
+// automatic migrations at server startup
 const migrationClient = postgres(config.db.url, {max: 1});
-await migrate(drizzle(migrationClient), config.db.migrationConfig); //runs automatic migrations at server startup
+await migrate(drizzle(migrationClient), config.db.migrationConfig); 
 
 const PORT = config.api.port || 8080;
 
@@ -37,16 +39,18 @@ const app = express();
 app.use(middlewareLogResponses);
 app.use(express.json());
 
-app.use("/app", countFileserverHits,express.static("./src/app")); // root is relative to the project root 
+// root is relative to the project root 
+app.use("/app", countFileserverHits,express.static("./src/app")); 
 
 app.get("/api/healthz", handlerReadiness);
 
 app.get("/admin/metrics", adminView);
-app.post("/admin/reset", resetNumOfRequestsAndDeleteALLUsers);
+app.get("/admin/users", getAllUsers);
+app.post("/admin/reset", resetRequestsAndDeleteAllUsers);
 
 app.post("/api/users", createNewUser);
-app.get("/admin/users", checkAllUsers); //testing
 app.put("/api/users", updateUserLoginInfo);
+app.post("/api/polka/webhooks", polkaWebhookUserUpgrade);
 
 app.post("/api/login", userLogin);
 app.post("/api/refresh", refreshAccessToken);
@@ -57,7 +61,6 @@ app.get("/api/chirps", getAllChirps);
 app.get("/api/chirps/:chirpID", getSingleChirp);
 app.delete("/api/chirps/:chirpID", deleteSingleChirp);
 
-app.post("/api/polka/webhooks", polkaWebhookUserUpgrade);
 
 app.use(errorHandler);
 

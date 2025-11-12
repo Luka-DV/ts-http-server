@@ -24,15 +24,14 @@ export async function getAllChirpsQuery() {
     return allChirps;
 }
 
+
 export async function getAllChirpsFromSingleUserQuery(userID: string) {
     const allChirpsFromUser = await db.query.chirps.findMany({
-        where: (chirps, { eq }) => eq(chirps.userId, userID), 
-        //orderBy: (chirps, { asc }) => [asc(chirps.createdAt)],
+        where: (chirps, { eq }) => eq(chirps.userId, userID)
     })
 
     return allChirpsFromUser;
 }
-
 
 
 export async function getSingleChirpQuery(chirpID: string) {
@@ -42,6 +41,7 @@ export async function getSingleChirpQuery(chirpID: string) {
 
     return chirp;
 }
+
 
 export async function deleteChirpQuery(chirpID: string) {
     const [deleted] = await db.delete(chirps)

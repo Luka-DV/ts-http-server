@@ -17,12 +17,15 @@ export async function createUserQuery(user: NewUser): Promise<UserResponse> {
             email: users.email,
             isChirpyRed: users.isChirpyRed
         });
+        
     return result;
 }
+
 
 export async function deleteALLUsersQuery() {
     await db.delete(users);
 }
+
 
 export async function updateUserInfoQuery(userId: string, email: string , hashedPassword: string): Promise<UserResponse> {
     const [updatedUser] = await db.update(users)
@@ -39,14 +42,16 @@ export async function updateUserInfoQuery(userId: string, email: string , hashed
             isChirpyRed: users.isChirpyRed
         });
         
-    return updatedUser
+    return updatedUser;
 }
+
 
 export async function getAllUsersQuery() {
     const allUsers = await db.query.users.findMany();
 
     return allUsers;
 }
+
 
 export async function getSingleUserQuery(userEmail: string) {
     const user = await db.query.users.findFirst({
@@ -71,5 +76,5 @@ export async function upgradeUserToRedQuery(userID: string): Promise<UserRespons
             isChirpyRed: users.isChirpyRed
         });
 
-    return upgradedUser
+    return upgradedUser;
 }

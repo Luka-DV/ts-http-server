@@ -40,7 +40,7 @@ describe("Password Hashing", () => {
 });
 
 
-//Create and validate JWTs, JWTs signed with the wrong secret are rejected and expired tokens are rejected.1
+//Create and validate JWTs, JWTs signed with the wrong secret are rejected and expired tokens are rejected.
 
 describe("Creating and validating JWTs", () => {
 
@@ -88,12 +88,7 @@ describe("Creating and validating JWTs", () => {
 
 
 describe("Get token string from request", () => {
-/* 
-    const mockHeader = new Headers();
-    mockHeader.append("Authorization", "Bearer mockTokenString");
-    const mockRequest = new Request("/", {headers: mockHeader});
-*/
-   
+
     const mockTokenString = "Bearer mockTokenString";
 
     const mockRequestObjectOK = {
@@ -137,6 +132,7 @@ describe("Get token string from request", () => {
         }))
     })
 })
+
 
 describe("Get api key from request", () => {
 
@@ -189,33 +185,3 @@ describe("Get api key from request", () => {
         }))
     })
 })
-
-
-
-/* Vitest docs examples
-
-function getFruitStock(type: string) {
-  if (type === 'pineapples') {
-    throw new Error('Pineapples are not in stock')
-  }
-
-  // Do some other stuff
-}
-
-test('throws on pineapples', () => {
-  // Test that the error message says "stock" somewhere: these are equivalent
-  expect(() => getFruitStock('pineapples')).toThrowError(/stock/)
-  expect(() => getFruitStock('pineapples')).toThrowError('stock')
-
-  // Test the exact error message
-  expect(() => getFruitStock('pineapples')).toThrowError(
-    /^Pineapples are not in stock$/,
-  )
-
-  expect(() => getFruitStock('pineapples')).toThrowError(
-    new Error('Pineapples are not in stock'),
-  )
-  expect(() => getFruitStock('pineapples')).toThrowError(expect.objectContaining({
-    message: 'Pineapples are not in stock',
-  }))
-}) */

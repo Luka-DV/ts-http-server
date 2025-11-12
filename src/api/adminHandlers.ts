@@ -14,29 +14,30 @@ export async function adminView(_: Request, res: Response): Promise<void> {
         </html>`);
 }
 
-export async function resetNumOfRequestsAndDeleteALLUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
+
+export async function resetRequestsAndDeleteAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         if(config.api.platform !== "dev") {
             throw new ForbiddenError("Forbidden. Reset is only allowed in dev environment.")
         }
         config.api.fileserverHits = 0;
         await deleteALLUsersQuery();
-        //res.set("Content-Type", "text/plain; charset=utf-8");
-        res.type("text/plain");
+ 
+        res.type("text/plain; charset=utf-8");
         res.send("Count reset and users deleted");
-
     } catch (err) {
         next(err)
     }
 }
 
-export async function checkAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
+
+export async function getAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const users = await getAllUsersQuery();
-        //res.type("json"); > .json already sets Content-Type
-        res.status(201).json(users);
+
+        res.status(201)
+            .json(users);
     } catch (err) {
         next(err);
     }
 }
-

@@ -1,3 +1,4 @@
+
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../indexDB.js";
 import { NewRefreshToken, refreshTokens } from "../schema.js";
@@ -14,6 +15,7 @@ export async function writeRefreshTokenQuery(refToken: NewRefreshToken) {
     return insert;
 }
 
+
 export async function findRefreshTokenQuery(tokenString: string) {
     const token = await db.query.refreshTokens.findFirst({
         where: (refreshTokens, {eq}) => eq(refreshTokens.token, tokenString)
@@ -21,6 +23,7 @@ export async function findRefreshTokenQuery(tokenString: string) {
 
     return token;
 }
+
 
 export async function revokeRefreshTokenQuery(tokenString: string): Promise<{ revokedAt: Date | null } | undefined> {
     const [revokedAt] = await db.update(refreshTokens)

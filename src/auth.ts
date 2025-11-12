@@ -8,21 +8,17 @@ import { config } from "./config.js";
 import { randomBytes } from "node:crypto";
 import { writeRefreshTokenQuery } from "./db/queries/tokens.js";
 
-//Hash the password using the argon2.hash function:
 
+//Password hashing with argon2:
 export async function hashPassword(password: string): Promise<string> {
-    try {
         const hash = await argon2.hash(password);
         if(!hash) {
             throw new BadRequestError("Hashing was not successful")
         }
+
         return hash;
-    } catch (err) {
-        throw err;
-    }
 }
 
-//Use the argon2.verify function to compare the password in the HTTP request with the password that is stored in the database:
 
 export async function checkPasswordHash(password: string, hash: string): Promise<boolean> {
     try{
@@ -34,7 +30,8 @@ export async function checkPasswordHash(password: string, hash: string): Promise
     }
 }
 
-//JWT
+
+// JWT
 
 export function makeJWT(userID: string, expiresIn: number, secret: string): string {
     type payload = Pick<JwtPayload, "iss" | "sub" | "iat" | "exp">;
@@ -47,22 +44,15 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
         sub: userID,
         iat,
         exp
-    }
+    };
 
-    const token = jwt.sign(tokenPayload, secret)
-
-    //const token = jwt.sign({userID: userID}, secret, {expiresIn: expiresIn});
+    const token = jwt.sign(tokenPayload, secret);
 
     return token;
 };
 
 
 export function validateJWT(tokenString: string, secret: string): string {
-    /* 
-    function isJwtPayload(decoded: string | JwtPayload): decoded is JwtPayload {
-        return typeof decoded !== "string" && "sub" in decoded;
-    } 
-    */
     try {
         const decoded = jwt.verify(tokenString, secret)
         if(typeof decoded === "object"
@@ -75,7 +65,6 @@ export function validateJWT(tokenString: string, secret: string): string {
             throw new UnauthorizedError("Invalid token payload");
         }
 
-     
     } catch (err) {
         if(err instanceof jwt.TokenExpiredError) {
             throw new UnauthorizedError("Token has expired");
@@ -124,11 +113,12 @@ export async function makeRefreshToken(userId: string): Promise<string>{
         userId
     })
 
-    if(tokenRow) { // is either { token: string } or undefined if failed
+    if(tokenRow) { // either { token: string } or undefined if failed
         return tokenRow.token;
     }
 
-    return makeRefreshToken(userId); // on conflict try again
+    return makeRefreshToken(userId);
+    // could improve: limited number of retries to avoid infinite recursion
 }
 
 
