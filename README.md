@@ -7,7 +7,7 @@ A small X-like backend with users, JWT auth + refresh tokens, chirps, and simple
 - JWT access tokens + refresh/revoke flow (refresh tokens stored in DB)
 - Posts(Chirps): create, list, get by ID, delete
 - Profanity filtering on chirp body
-- Webhook ("Polka") to upgrade users ("Chirpy red")
+- Webhook ("Polka") to upgrade users ("Chirpy Red")
 - Admin: metrics page, list users, dev-only reset
 - Auto-migrations on startup
 - Serves static client at `/app`
@@ -199,11 +199,22 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
 
     GET /admin/metrics
         200 → HTML page with file server hit count (fileserverHits)
+
     GET /admin/users
-        201 → all users JSON (note: consider returning 200)
+    Get all users. Only when PLATFORM=dev.
+        200 → 
+        [ {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            hashedPassword: string;
+            isChirpyRed: boolean;
+        } ]
+        403 if not dev
+        
     POST /admin/reset
-        Only when PLATFORM=dev
-        Resets hit counter and deletes all users
+    Resets hit counter and deletes all users. Only when PLATFORM=dev.
         200 → text/plain “Count reset and users deleted”
         403 if not dev
 
