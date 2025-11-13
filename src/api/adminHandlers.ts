@@ -33,6 +33,9 @@ export async function resetRequestsAndDeleteAllUsers(_: Request, res: Response, 
 
 export async function getAllUsers(_: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+        if(config.api.platform !== "dev") {
+            throw new ForbiddenError("Forbidden. Only allowed in dev environment.")
+        }
         const users = await getAllUsersQuery();
 
         res.status(200)
