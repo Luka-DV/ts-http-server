@@ -229,10 +229,10 @@ JSON shape:
 ```
 
 **Error Types**:
-```ts
+```
     NotFoundError, 404 (Not Found), Resource requested does not exist.
     ForbiddenError, 403 (Forbidden), Client lacks necessary permissions to access the resource.
-    UnauthorizedError, 401 (Unauthorized, Authentication is missing or invalid.
+    UnauthorizedError, 401 (Unauthorized), Authentication is missing or invalid.
     BadRequestError, 400 (Bad Request), Client-side error (e.g., malformed request, missing parameters).
     Default, 500 (Internal Server Error), Plain Text: Internal Server Error, An unexpected server-side error occurred.
 ```
