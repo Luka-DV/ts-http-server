@@ -35,7 +35,7 @@ export async function getAllUsers(_: Request, res: Response, next: NextFunction)
     try {
         const users = await getAllUsersQuery();
 
-        res.status(201)
+        res.status(200)
             .json(users);
     } catch (err) {
         next(err);
