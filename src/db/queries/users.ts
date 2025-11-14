@@ -17,7 +17,7 @@ export async function createUserQuery(user: NewUser): Promise<UserResponse> {
             email: users.email,
             isChirpyRed: users.isChirpyRed
         });
-        
+
     return result;
 }
 
@@ -58,6 +58,14 @@ export async function getSingleUserQuery(userEmail: string) {
         where: (users, {eq}) => eq(users.email, userEmail),
     })
 
+    return user;
+}
+
+export async function getUserFromIdQuery(userId: string) {
+    const user = await db.query.users.findFirst({
+        where: (users, {eq}) => eq(users.id, userId)
+    })
+    
     return user;
 }
 

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
-import { createUserQuery, getSingleUserQuery, updateUserInfoQuery, upgradeUserToRedQuery } from "../db/queries/users.js";
+import { createUserQuery, getSingleUserQuery, getUserFromIdQuery, updateUserInfoQuery, upgradeUserToRedQuery } from "../db/queries/users.js";
 import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getAllChirpsFromSingleUserQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
 import { Chirp, NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
@@ -89,6 +89,10 @@ export async function getAllChirps(req: Request, res: Response, next: NextFuncti
         const { authorId, sort } = req.query;
 
         if(authorId && typeof authorId === "string") {
+            const user = await getUserFromIdQuery(authorId);
+            if(user === undefined) {
+                throw new NotFoundError(`User with id "${authorId}" was not found`);
+            };
             allChirps = await getAllChirpsFromSingleUserQuery(authorId);
         } else {
             allChirps = await getAllChirpsQuery();
