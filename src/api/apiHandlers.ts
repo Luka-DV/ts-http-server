@@ -149,7 +149,7 @@ export async function deleteSingleChirp(req:Request, res: Response, next: NextFu
 
         const deletedChirpID = await deleteChirpQuery(chirp.id);
         if(!deletedChirpID.deleted) {
-            throw new Error("Deletion not successful")
+           throw new NotFoundError("Chirp not found or could not be deleted");
         }
 
         res.status(204)
