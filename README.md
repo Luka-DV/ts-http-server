@@ -1,29 +1,44 @@
 # Chirpy API (Node/Express + TypeScript + Postgres)
 
-A small X-like backend with users, JWT auth + refresh tokens, chirps, and simple admin tools. Built with Express, Drizzle ORM, and Postgres.
+A small X-like backend with users, JWT auth + refresh tokens, chirps, and simple admin tools. Built with Typescript, Express, Drizzle ORM, and Postgres.
 
 ### Features
 - User signup, login, profile update
 - JWT access tokens + refresh/revoke flow (refresh tokens stored in DB)
 - Posts(Chirps): create, list, get by ID, delete
 - Profanity filtering on chirp body
-- Webhook ("Polka") to upgrade users ("Chirpy Red")
-- Admin: metrics page, list users, dev-only reset
+- Webhook to upgrade users ("Chirpy Red" )
+- Admin: simple metric page, dev-only list users and reset
 - Auto-migrations on startup
 - Serves static client at `/app`
+- RESTful API design
 
 ### Tech
-- Node.js 18+, TypeScript, Express
-- Postgres, drizzle-orm, postgres-js
+- Node.js, TypeScript, Express
+- Postgres, Drizzle-orm, postgres-js
 - Argon2 password hashing, jsonwebtoken
+- Vitest
 
 ## Getting Started
 
 ### Prereqs
-- Node 18+
+- Node v20+
 - Postgres running and reachable
 
-### Environment
+## Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd chirpy
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+3. Configure environment variables:
+
 Create a `.env` with:
 
 - `PORT=<port_num>`
@@ -32,32 +47,60 @@ Create a `.env` with:
 - `DB_URL=<connection_string>` i.e. postgres://user:pass@host:5432/db
 - `SECRET=<super_secret_jwt_key>`
 
-
 Notes:
 - `SECRET` signs access JWTs.
 - Access token duration is 1h via config, refresh token 60 days
-- `PLATFORM=dev` enables `POST /admin/reset`.
+- `PLATFORM=dev` enables `POST /admin/reset` adn `GET /admin/users`
 
-### Install and Run
+4. Run database migrations:
 ```bash
-npm install
-npm run build           # if you output to dist
-node dist/index.js      # or: ts-node src/index.ts
+npm run generate
+npm run migrate
+```
+Migrations run automatically on server startup.
+
+5. Build the project:
+
+```bash
+npm run build
 ```
 
-On boot, migrations run automatically. Server listens on PORT (default 8080).
-### Project Structure
+## Other scripts
 
-    src/index.ts – app wiring, routes, static, migrations
-    src/api/apiHandlers.ts – users, chirps, tokens, webhook
-    src/api/adminHandlers.ts – admin routes
-    src/middleware.ts – logging, hit counter, error handler
-    src/db/schema.ts – drizzle schema (users, chirps, refresh_tokens)
-    src/db/queries/* – query functions
-    src/db/indexDB.ts – db connection
-    src/auth.ts – hashing, JWT, header parsing
-    src/config.ts – env-backed runtime config
-    src/auth.test.ts – unit tests (vitest)
+-  Build and run in development mode:
+
+```bash
+npm run dev
+```
+
+-  Run test suite:
+
+```bash
+npm test
+```
+
+
+
+### Src directory structure
+
+```
+src/
+├── index.ts                  # App wiring: routes, static files, migrations
+├── config.ts                 # Env-backed configuration
+├── middleware.ts             # Logging, hit counter, error handler
+├── api/
+│   ├── apiHandlers.ts        # Users, chirps, tokens, webhook handlers
+│   └── adminHandlers.ts      # Admin routes
+├── auth.ts                   # Authentication
+├── auth.test.ts              # Unit tests (vitest)
+├── errors.ts                 # Error classes
+├── db/
+│   ├── schema.ts             # Drizzle schema
+│   ├── queries/*             # Query functions
+│   └── indexDB.ts            # DB connection
+└── app/*                     # Static files
+
+```
 
 ## API Reference
 
@@ -72,7 +115,7 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
 #### Users
 
     POST /api/users
-    Creates a new user.
+    Register a new user.
         Body: 
         { 
             email: string, 
@@ -86,6 +129,7 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             email: string;
             isChirpyRed: boolean;
         }
+        400: invalid input
 
     PUT /api/users (auth: access JWT)
     Updates a user's email and/or password.
@@ -95,8 +139,10 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             password: string 
         }
         200 → updated user (same shape as with new user)
+        400: invalid input,
+        401: token validation error
 
-#### Webhooks (Polka)
+#### Webhooks ("Polka")
 
     POST /api/polka/webhooks
     Upgrades user to "Chirpy Red".
@@ -109,6 +155,8 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             }
         }
         204 on success or non-upgrade events
+        401: API key error,
+        404: user error
 
 ####  Auth/Tokens
 
@@ -129,6 +177,8 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             email: string;
             isChirpyRed: boolean;
         }
+        400: invalid input,
+        401: auth error
 
     POST /api/refresh
     Refresh user JWT.
@@ -137,13 +187,13 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
         { 
             token: <newAccessJWTstring> 
         }
-        401 if missing/expired/revoked
+        401: missing/expired/revoked token
 
     POST /api/revoke
     Revoke user refresh token.
         Header: Authorization: Bearer <refreshToken>
         204 on success
-        401 if missing/already revoked
+        401: missing/already revoked token
 
 #### Chirps
 
@@ -161,7 +211,8 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             body: string;
             userId: string;
         }
-        400 invalid body, 401 unauthenticated
+        400: invalid body, 
+        401: token validation error
 
     GET /api/chirps
     Get all chirps or all chirps from single user; optional sorting.
@@ -176,6 +227,7 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             body: string;
             userId: string;
         } ]
+        404: if user not found
 
     GET /api/chirps/:chirpID
     Returns a single chirp with the id of <chirpID>.
@@ -187,12 +239,14 @@ On boot, migrations run automatically. Server listens on PORT (default 8080).
             body: string;
             userId: string;
         }
-        404 if not found
+        404: if chirp not found
 
     DELETE /api/chirps/:chirpID (auth, owner only)
     Deletes chirp with the id of <chirpID>.
         204 on success
-        404 not found, 403 not owner, 401 unauthenticated
+        401: token validation error,
+        403: user is not owner,
+        404: chirp not found
 
 
 #### Admin
@@ -229,13 +283,17 @@ JSON shape:
 ```
 
 **Error Types**:
-```
-    NotFoundError, 404 (Not Found), Resource requested does not exist.
-    ForbiddenError, 403 (Forbidden), Client lacks necessary permissions to access the resource.
-    UnauthorizedError, 401 (Unauthorized), Authentication is missing or invalid.
-    BadRequestError, 400 (Bad Request), Client-side error (e.g., malformed request, missing parameters).
-    Default, 500 (Internal Server Error), Plain Text: Internal Server Error, An unexpected server-side error occurred.
-```
+
+- BadRequestError — 400: Invalid or malformed request.
+
+- UnauthorizedError — 401: Missing or invalid authentication.
+
+- ForbiddenError — 403: Authenticated but not allowed.
+
+- NotFoundError — 404: Resource does not exist.
+
+- InternalServerError — 500: Unexpected server error (default).
+
 
 ### Example cURL
 
@@ -282,6 +340,16 @@ Uses Vitest.
 npm test
 ```
 
+### Possible Future Enhancements
+- Pagination for chirp listings
+- Rate limiting
+- Chirp likes/favorites
+- User following system
+
+### Credits
+
+This projects was developed with the guidance of Boot.dev's [HTTP Servers in TypeScript](https://www.boot.dev/courses/learn-http-servers-typescript) course, with additional independent research and implementation work.
+
 ####  License
 
-MIT
+ISC
