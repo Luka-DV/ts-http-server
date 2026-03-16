@@ -1,12 +1,13 @@
-
 import express from "express";
-import cookieParser from 'cookie-parser';
+//import cookieParser from 'cookie-parser';
 import { 
     countFileserverHits, 
     errorHandler, 
     middlewareLogResponses 
 } from "./middleware.js";
-import { createNewUser, 
+
+import { 
+    createNewUser, 
     getAllChirps, 
     getSingleChirp, 
     handlerReadiness, 
@@ -18,20 +19,23 @@ import { createNewUser,
     deleteSingleChirp,
     polkaWebhookUserUpgrade
 } from "./api/apiHandlers.js";
-import { adminView, 
+
+import { 
+    adminView, 
     getAllUsers, 
     resetRequestsAndDeleteAllUsers 
 } from "./api/adminHandlers.js";
 
-import postgres from 'postgres';
 import { config } from './config.js';
-import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-
+import { runDBMigrations } from "./db/migration.js";
 
 // automatic migrations at server startup
-const migrationClient = postgres(config.db.url, {max: 1});
-await migrate(drizzle(migrationClient), config.db.migrationConfig); 
+try {
+    await runDBMigrations();
+} catch (err) {
+    console.error("Database migration failed. Server will not start.");
+    throw err;
+}
 
 const PORT = config.api.port || 8080;
 
