@@ -87,6 +87,7 @@ npm test
 src/
 ├── index.ts                  # App wiring: routes, static files, migrations
 ├── config.ts                 # Env-backed configuration
+├── migration.ts              # Startup auto-migrations logic
 ├── middleware.ts             # Logging, hit counter, error handler
 ├── api/
 │   ├── apiHandlers.ts        # Users, chirps, tokens, webhook handlers
