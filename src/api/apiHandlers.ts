@@ -336,7 +336,7 @@ export async function refreshAccessToken(req: Request, res: Response, next: Next
     try {
         //if using httpOnly cookies:
         //const tokenString = req.cookies?.refreshToken as string | undefined;
-
+        // if(!tokenString) throw new UnauthorizedError("Refresh token missing");
         const tokenString = getBearerToken(req);
         const refreshToken = await findRefreshTokenQuery(tokenString);
         if(!refreshToken || 
@@ -363,7 +363,9 @@ export async function refreshAccessToken(req: Request, res: Response, next: Next
 
 export async function revokeRefreshToken(req: Request, res: Response, next: NextFunction) {
     try {
+        //if using httpOnly cookies:
         //const tokenString = req.cookies?.refreshToken as string | undefined;
+        // if(!tokenString) throw new UnauthorizedError("Refresh token missing");
         const tokenString = getBearerToken(req);
         const revokedAt = await revokeRefreshTokenQuery(tokenString);
         if(revokedAt === undefined) {
