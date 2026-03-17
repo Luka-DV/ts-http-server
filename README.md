@@ -50,7 +50,7 @@ Create a `.env` with:
 Notes:
 - `SECRET` signs access JWTs.
 - Access token duration is 1h via config, refresh token 60 days
-- `PLATFORM=dev` enables `POST /admin/reset` adn `GET /admin/users`
+- `PLATFORM=dev` enables `POST /admin/reset` and `GET /admin/users`
 
 4. Run database migrations:
 ```bash
