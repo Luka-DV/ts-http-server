@@ -98,28 +98,29 @@ export function getBearerToken(req: Request): string {
 };
 
 
-export async function makeRefreshToken(userId: string): Promise<string>{
-    const encodedString = await new Promise<string>((resolve, reject) => {
+export async function makeRefreshToken(userId: string, maxRetries = 3): Promise<string>{
+    for(let attempt = 0; attempt < maxRetries; attempt++) {
+        const encodedString = await new Promise<string>((resolve, reject) => {
         randomBytes(32, (err, buf) => {
             if (err) {
                 return reject(err)
             }
             resolve(buf.toString("hex"));
         });
-    })
+        })
 
-    const tokenRow = await writeRefreshTokenQuery({
-        token: encodedString,
-        userId
-    })
+        const tokenRow = await writeRefreshTokenQuery({
+            token: encodedString,
+            userId
+        });
 
-    if(tokenRow) { // either { token: string } or undefined if failed
-        return tokenRow.token;
+        if(tokenRow) { // either { token: string } or undefined if failed
+            return tokenRow.token;
+        }
     }
 
-    return makeRefreshToken(userId);
-    // could improve: limited number of retries to avoid infinite recursion
-}
+    throw new Error("Failed to generate a unique refresh token after max retries");
+};
 
 
 export function getAPIKey(req: Request): string {
@@ -134,4 +135,4 @@ export function getAPIKey(req: Request): string {
     }
 
     return apiKey;
-}
+};
