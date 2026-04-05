@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "target": "esnext",
-    "module": "esnext",
+    "module": "nodenext",
     "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
-    "moduleResolution": "Node",
+    "noUncheckedIndexedAccess": true,
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "sourceMap": true,
+    "verbatimModuleSyntax": true,
     "lib": ["ES2024"]
   },
   "include": ["./src/**/*.ts", "./src/**/*.d.ts"],
