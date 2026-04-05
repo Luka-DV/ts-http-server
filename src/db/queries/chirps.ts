@@ -1,6 +1,6 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "../indexDB.js";
-import { chirps, NewChirp } from "../schema.js";
+import { chirps, type NewChirp } from "../schema.js";
 
 
 export async function createChirpQuery(chirp: NewChirp) {
