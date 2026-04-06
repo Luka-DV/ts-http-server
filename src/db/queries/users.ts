@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../indexDB.js";
-import { NewUser, User, users } from "../schema.js";
+import { type NewUser, type User, users } from "../schema.js";
+import { ConflictError, NotFoundError } from "../../errors.js";
 
 
 export type UserResponse = Omit<User, "hashedPassword">
@@ -18,6 +19,10 @@ export async function createUserQuery(user: NewUser): Promise<UserResponse> {
             isChirpyRed: users.isChirpyRed
         });
 
+    if(!result) {
+        throw new ConflictError("Email allready exists");
+    }
+    
     return result;
 }
 
@@ -41,6 +46,10 @@ export async function updateUserInfoQuery(userId: string, email: string , hashed
             email: users.email,
             isChirpyRed: users.isChirpyRed
         });
+
+    if(!updatedUser) {
+        throw new NotFoundError("User not found");
+    }
         
     return updatedUser;
 }
