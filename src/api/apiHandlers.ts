@@ -1,11 +1,18 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors.js"
 import { createUserQuery, getSingleUserQuery, getUserFromIdQuery, updateUserInfoQuery, upgradeUserToRedQuery } from "../db/queries/users.js";
 import { createChirpQuery, deleteChirpQuery, getAllChirpsQuery, getAllChirpsFromSingleUserQuery, getSingleChirpQuery } from "../db/queries/chirps.js";
-import { Chirp, NewChirp, NewUser } from "../db/schema.js";
+import type { Chirp, NewChirp, NewUser } from "../db/schema.js";
 import { checkPasswordHash, getAPIKey, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
 import { findRefreshTokenQuery, revokeRefreshTokenQuery } from "../db/queries/tokens.js";
+
+const PROFANE_WORDS = new Set([
+    "kerfuffle",
+    "sharbert",
+    "fornax"
+]);
+
 
 export async function handlerReadiness(_: Request, res: Response): Promise<void> {
     res.set("Content-Type", "text/plain; charset=utf-8");
@@ -58,26 +65,16 @@ function validateChirp(chirp: {body: string}): string {
 
 
 function cleanChirp(text: string): string {
-    const profaneWords = [
-        "kerfuffle",
-        "sharbert",
-        "fornax"
-    ]
-
     const textArray = text.trim().split(" ");
 
-    const textArrayLowerCase = 
-        text.toLowerCase()
-            .trim()
-            .split(" ");
-
-    for(let i = 0; i < textArrayLowerCase.length; i++) {
-        if(profaneWords.includes(textArrayLowerCase[i])) {
-            textArray[i] = "****";
+    const cleanTextArray = textArray.map((word) => {
+        if(PROFANE_WORDS.has(word.toLowerCase())) {
+            return "****"
         }
-    }
+        return word
+    });
 
-    return textArray.join(" ");
+    return cleanTextArray.join(" ");
 }
 
 
@@ -165,7 +162,7 @@ export async function deleteSingleChirp(
         }
 
         const deletedChirpID = await deleteChirpQuery(chirp.id);
-        if(!deletedChirpID.deleted) {
+        if(!deletedChirpID) {
            throw new NotFoundError("Chirp not found or could not be deleted");
         }
 
