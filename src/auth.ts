@@ -2,8 +2,8 @@
 import * as argon2 from "argon2";
 import { BadRequestError, UnauthorizedError } from "./errors.js";
 import jwt from "jsonwebtoken";
-import { JwtPayload } from "jsonwebtoken";
-import { Request } from "express";
+import type { JwtPayload } from "jsonwebtoken";
+import type { Request } from "express";
 import { config } from "./config.js";
 import { randomBytes } from "node:crypto";
 import { writeRefreshTokenQuery } from "./db/queries/tokens.js";

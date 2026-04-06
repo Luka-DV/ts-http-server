@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, test } from "vitest";
 import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken, getAPIKey } from "./auth.js";
 import { UnauthorizedError } from "./errors.js";
-import { Request } from "express";
+import type { Request } from "express";
 
 
 
