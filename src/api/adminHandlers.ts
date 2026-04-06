@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
 import { deleteALLUsersQuery, getAllUsersQuery } from "../db/queries/users.js";
 import { ForbiddenError } from "../errors.js";

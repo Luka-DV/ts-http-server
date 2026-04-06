@@ -1,7 +1,7 @@
 
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../indexDB.js";
-import { NewRefreshToken, refreshTokens } from "../schema.js";
+import { type NewRefreshToken, refreshTokens } from "../schema.js";
 
 
 export async function writeRefreshTokenQuery(refToken: NewRefreshToken) {
