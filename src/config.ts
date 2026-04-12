@@ -30,7 +30,7 @@ type Config = {
 
 function envOrThrowErr(key: string) {
     if(!process.env[key]) {
-        throw new Error("Missing .env value!");
+        throw new Error(`Missing .env value: ${key} !`);
     }
     return process.env[key];
 }
